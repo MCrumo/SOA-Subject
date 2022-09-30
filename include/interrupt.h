@@ -16,6 +16,14 @@ void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
 void setTrapHandler(int vector, void (*handler)(), int maxAccessibleFromPL);
 
 void setIdt();
+
 void keyboard_handler();
+void clock_handler();
+
+void keyboard_routine();
+void clock_routine();
+
+void writeMSR(unsigned long msr, unsigned long val);
+void syscall_handler_sysenter();
 
 #endif  /* __INTERRUPT_H__ */
