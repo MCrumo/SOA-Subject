@@ -12,6 +12,8 @@
 Gate idt[IDT_ENTRIES];
 Register    idtR;
 
+int zeos_ticks = 0;
+
 char char_map[] =
 {
   '\0','\0','1','2','3','4','5','6',
@@ -83,25 +85,31 @@ void setIdt()
   set_handlers();
 
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
-  //setInterruptHandler(32, clock_handler, 0);
+  setInterruptHandler(32, clock_handler, 0);
   setInterruptHandler(33, keyboard_handler, 0);
+  
+  writeMSR(0x174, __KERNEL_CS);
+  writeMSR(0x175, INITIAL_ESP);
+  writeMSR(0x176, (unsigned long)syscall_handler_sysenter);
 
   set_idt_reg(&idtR);
 }
 
-void keyboard_routine () {
-    unsigned char valor;
-    char caracter;
-    valor = inb(0x60);
-    
-    unsigned int polsat = valor & 0x80;
-    
-    if (polsat) {
-        caracter = valor & 0x7F;
-        char lletra = char_map[(int)caracter];
-        
-        if (lletra == '\0') lletra = 'C';
-        
-        printc_xy(0x60, 0x20, lletra);
+void keyboard_routine(){
+    // Read from port 0x60 (pv = port value)
+    unsigned char pv = inb(0x60);
+    // 0x80 = 10000000
+    // 0x80 & 00000000 = 0 // Make
+    // 0x80 & 10000000 = 1 // Break
+    int isbreak = pv & 0x80;
+
+    if(isbreak == 0){ // If it is a make
+        char toprint = char_map[pv & 0x7F];
+        printc_xy(60, 20, toprint);
     }
+}
+
+void clock_routine(){
+    ++zeos_ticks;
+    zeos_show_clock();
 }
