@@ -98,19 +98,19 @@ void setIdt()
 }
 
 void keyboard_routine(){
-  unsigned char valor;
-    char caracter;
+    unsigned char valor;
+    int pos;
     valor = inb(0x60);
     
     unsigned int polsat = valor & 0x80;
     
-    if (polsat) {
-        caracter = valor & 0x7F;
-        char lletra = char_map[(int)caracter];
+    if (!polsat) {
+        pos = valor & 0x7F;
+        char lletra = char_map[pos];
         
         if (lletra == '\0') lletra = 'C';
         
-        printc_xy(0x60, 0x20, lletra);
+        printc_xy(60, 20, lletra);
     }
 }
 
