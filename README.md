@@ -23,11 +23,24 @@ EXAMPLES:
   
   git push origin master
 
-### SSH keys
+### Install GIT
 
-After GIT is installed...
+Steps in linux:
 
+1) sudo apt-get update  
+
+2) sudo apt-get install git  
+
+3) git --version
+
+4) git config --global user.name "UserName"
+
+5) git config --global user.email "user@mail.com"
+
+Further information:
 -> https://www.atlassian.com/git/tutorials/install-git
+
+### SSH keys
 
 GENERATE A KEY: 
 
