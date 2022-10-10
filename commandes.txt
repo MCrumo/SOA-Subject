@@ -1,0 +1,11 @@
+DEBUGAR baix nivell bochs:
+	objdump -d system | less  --> per buscar al less amb /nomBusqueda
+	make emuldbg
+	r 	-> print registers
+	c 	-> continue
+	print-stack 	-> print stack
+	b 0xaddr 	-> crar breackpoint
+	
+	
+en tel task_strukt cre un campo list head que es lo que encolo
+	
