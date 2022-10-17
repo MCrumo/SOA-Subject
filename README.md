@@ -1,5 +1,13 @@
 
 # SOA
+ENS HEM QUEDAT A Merge branch 'main' of github.com:hialvaro/ZeOS-SOA into main (OCT 27)
+https://github.com/hialvaro/ZeOS-SOA/commits?before=da2160715d88cd53a9dcb3d6fb754316b0f8a4eb+35
+
+## Comentaris del codi
+
+### Includes que per arreglar warnings
+- A sched.c fem un include de interrupt.h perquè sinó ens salta un waning de implicit declaration de writeMSR a la linia 117
+
 
 ### Git commands
 CLONE -> Bring a repository that is hosted somewhere like Github into a folder on your local machine (once per repo)
