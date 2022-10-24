@@ -1,6 +1,6 @@
 
 # SOA
-ENS HEM QUEDAT A Merge branch 'main' of github.com:hialvaro/ZeOS-SOA into main (OCT 27)
+ENS HEM QUEDAT A Add sys_fork (compiling, not tested)
 https://github.com/hialvaro/ZeOS-SOA/commits?before=da2160715d88cd53a9dcb3d6fb754316b0f8a4eb+35
 
 ## Comentaris del codi
