@@ -17,7 +17,7 @@ ENTRY(write)
     movl $4, %eax # escrivim num corresponent
     
 
-    pushl $write_return
+    pushl $sys_write_return
     pushl %ebp
     mov %esp,%ebp
 
@@ -25,19 +25,19 @@ ENTRY(write)
     sysenter
     
     # err al sys
-write_return:
+sys_write_return:
     popl %ebp
     addl $4, %esp
     popl %edx
     popl %ecx
     cmpl $0, %eax
-    jge write_no_error
+    jge sys_write_NOerror
     # no err
     negl %eax # abs(eax)
     movl %eax, errno
     movl -1, %eax
     
-write_no_error:
+sys_write_NOerror:
     popl %ebp
     ret
 
@@ -51,27 +51,27 @@ ENTRY(gettime)
     
     movl $10, %eax
     
-    push $gett_return
+    push $gettime_return
     push %ebp
     mov %esp,%ebp
 
     sysenter
     
 
-gett_return:
+gettime_return:
     # err sys
     pop %ebp
     add $4, %esp
     pop %edx
     pop %ecx
     cmp $0, %eax
-    jge gett_no_error
+    jge gettime_NOerror
     # no err
     neg %eax # abs(eax)
     mov %eax, errno
     mov -1, %eax
     
-gett_no_error:
+gettime_NOerror:
     pop %ebp
     ret
 
@@ -87,7 +87,7 @@ ENTRY(getpid)
 	#push %ecx
 	#push %edx
 
-	push $gettt_return
+	push $getpid_return
 	push %ebp
 	mov %esp,%ebp
 
@@ -95,16 +95,50 @@ ENTRY(getpid)
 	sysenter # ## ## ## # <3  |---   |\ |
     # ######## ## ## #        |____  | \| .
 
-gettt_return:
+getpid_return:
 	pop %ebp
 	add $4, %esp
 	pop %edx
 	pop %ecx
 	cmp $0, %eax
-	jge gettt_no_error
+	jge getpid_NOerror
 	neg %eax 
 	mov %eax, errno
 	mov -1, %eax
-gettt_no_error:
+getpid_NOerror:
+	pop %ebp
+	ret
+
+ENTRY(fork)
+	push %ebp
+	mov %esp,%ebp
+
+	push %edx
+	push %ecx
+
+	movl $2, %eax
+
+	#push %ecx
+	#push %edx
+
+	push $sys_fork_ret
+	push %ebp
+	mov %esp,%ebp
+
+	# ######## ## ## #         ____  
+	sysenter # ## ## ## # <3  |---   |\ |
+    # ######## ## ## #        |____  | \| .
+
+sys_fork_ret:
+	pop %ebp
+	add $4, %esp
+	pop %edx
+	pop %ecx
+	cmp $0, %eax
+	jge sys_fork_NOerror
+	neg %eax
+	mov %eax, errno
+	mov -1, %eax
+sys_fork_NOerror:
 	pop %ebp
 	ret
