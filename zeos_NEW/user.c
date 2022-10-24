@@ -11,6 +11,8 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
 
     gettime();
     
+    char *boff;
+
     /*write*/
     if(write(1, "\n***** \n", 9) == -1) perror();
     char * buff;
@@ -28,6 +30,14 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
     if(write(1, buff, strlen(buff)) == -1) perror();
     buff = "***** \n\n";
     if(write(1, buff, strlen(buff)) == -1) perror();
+
+    /*getpid brbr*/
+    boff = "\n getpid() My PID: ";
+    if(write(1, boff, strlen(boff)) == -1) perror();
+    int pid = getpid();
+    itoa(pid, boff);
+    if(write(1, boff, strlen(boff)) == -1) perror();
+    if(write(1, "\n ****** \n", 9) == -1) perror();
     
     while(1) {}
 }

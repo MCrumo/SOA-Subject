@@ -74,3 +74,37 @@ gett_return:
 gett_no_error:
     pop %ebp
     ret
+
+
+ENTRY(getpid)
+    push %ebp
+	mov %esp,%ebp
+	push %edx
+	push %ecx
+
+	movl $20, %eax
+
+	#push %ecx
+	#push %edx
+
+	push $gettt_return
+	push %ebp
+	mov %esp,%ebp
+
+    # ######## ## ## #         ____  
+	sysenter # ## ## ## # <3  |---   |\ |
+    # ######## ## ## #        |____  | \| .
+
+gettt_return:
+	pop %ebp
+	add $4, %esp
+	pop %edx
+	pop %ecx
+	cmp $0, %eax
+	jge gettt_no_error
+	neg %eax 
+	mov %eax, errno
+	mov -1, %eax
+gettt_no_error:
+	pop %ebp
+	ret

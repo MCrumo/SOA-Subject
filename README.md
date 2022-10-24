@@ -5,6 +5,10 @@ https://github.com/hialvaro/ZeOS-SOA/commits?before=da2160715d88cd53a9dcb3d6fb75
 
 ## Comentaris del codi
 
+### Coses no fetes
+- Commits on Oct 27, 2021--> els dos de gettime no els hi hem fet ni cas, fa i desfa; wierd
+- No fem el codi de kernel_utils.S **el necessitarem per sched_newt_rr** -- Adds task_switch function hialvaro committed on Nov 4, 2021
+
 ### Includes que per arreglar warnings
 - A sched.c fem un include de interrupt.h perquè sinó ens salta un waning de implicit declaration de writeMSR a la linia 117
 

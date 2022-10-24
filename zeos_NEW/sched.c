@@ -123,9 +123,52 @@ void init_task1(void)
     set_cr3(ts_1->dir_pages_baseAddr);
 }
 
+void inner_task_switch(union task_union *new_task){
+	/*Update the pointer to the system stack to point to the stack of new_task. This step depends
+	on the implemented mechanism to enter the system. In the case that the int assembly
+	instruction is used to invoke the system code, TSS.esp0 must be modified to make it point
+	to the stack of new_task. If the system code is invoked using sysenter, MSR number 0x175
+	must be also modified.*/
+	tss.esp0 = KERNEL_ESP((union task_union *)new_task);
+	writeMSR(0x175, (int) tss.esp0);
+
+	/*Change the user address space by updating the current page directory: use the set_cr3
+	funtion to set the cr3 register to point to the page directory of the new_task.*/
+	set_cr3(get_DIR(&(new_task->task)));
+
+	/*Store the current value of the EBP register in the PCB. EBP has the address of the current
+	system stack where the inner_task_switch routine begins (the dynamic link).*/
+	__asm__ __volatile__ ( 
+		"mov %%ebp,%0"
+		: "=g" (current()->kernel_esp) 
+		:); 
+
+	/*Change the current system stack by setting ESP register to point to the stored value in the
+	new PCB.*/
+	__asm__ __volatile__ (
+		"mov %0, %%esp"
+		: 
+		: "g" (new_task->task.kernel_esp)); 
+
+	/*Restore the EBP register from the stack.*/
+	__asm__ __volatile__ (
+		"pop %%ebp"
+		: 
+		:);
+
+	/*Return to the routine that called this one using the instruction RET (usually task_switch,
+	but...). */
+	__asm__ __volatile__ (
+		"ret"
+		:
+		:);
+}
+
 
 void init_sched()
-{
+{ 
+  	//int val1 = add(0x42, 0x666);
+  	//int val2 = addASM(0x42, 0x666);
 	INIT_LIST_HEAD(&freequeue);
 	INIT_LIST_HEAD(&readyqueue);
 	for (short i = 0; i < NR_TASKS; ++i){
