@@ -21,8 +21,7 @@ struct task_struct *list_head_to_task_struct(struct list_head *l)
 extern struct list_head blocked;
 struct list_head freequeue, readyqueue;
 struct task_struct * idle_task; // Variable global idle_task
-
-
+int quantum_count;
 
 /* get_DIR - Returns the Page Directory address for task 't' */
 page_table_entry * get_DIR (struct task_struct *t) 
@@ -58,6 +57,52 @@ void cpu_idle(void)
 	}
 }
 
+void update_sched_data_rr(void)
+{
+	--quantum_count;
+}
+
+void update_process_state_rr(struct task_struct *ts, struct list_head *dst)
+{ 
+	struct list_head * list_tmp = &ts->list;
+	if(!(list_tmp->prev == NULL && list_tmp->next == NULL)){
+		list_del(list_tmp);
+	}
+	if (dst) list_add_tail(list_tmp, dst);
+}
+
+int needs_sched_rr(void)
+{
+	if(quantum_count > 0) return 0;
+	if(list_empty(&readyqueue)){
+		quantum_count = current()->quantum;
+		return 0;
+	}
+	return 1;
+}
+
+void sched_next_rr(void)
+{
+	struct task_struct *next;
+	if(!list_empty(&readyqueue)){
+		struct list_head *listh_first = list_first(&readyqueue);
+		list_del(listh_first);
+		next = list_head_to_task_struct(listh_first);
+	}
+	else next = idle_task;
+	quantum_count = next->quantum;
+	task_switch(next);
+}
+
+void schedule(){
+	update_sched_data_rr();
+	if(needs_sched_rr()) {
+		update_process_state_rr(current(), &readyqueue);
+		sched_next_rr();
+	}
+}
+
+
 void init_idle (void)
 {
     // Creem un punter al primer element de la freequeue
@@ -71,6 +116,8 @@ void init_idle (void)
 
     // PID = 0 perquè és el primer procés de idle
     aux_ts->PID = 0;
+
+	aux_ts->quantum = QUANTUM;
 
     // Amb allocate_DIR inicialitzem el dir_pages_baseAaddr perquè serà on guardarem l'espai d'adreces del procés.
     allocate_DIR(aux_ts);
@@ -102,6 +149,8 @@ void init_task1(void)
 
     // PID = 1 perquè és el primer procés de init
     ts_1->PID = 1;
+
+	ts_1->quantum = QUANTUM;
 
     // Amb allocate_DIR inicialitzem el dir_pages_baseAaddr perquè serà on guardarem l'espai d'adreces del procés.
     allocate_DIR(ts_1);

@@ -34,6 +34,7 @@ SYSOBJ = \
 	utils.o \
 	hardware.o \
 	list.o \
+	utiles_ts.o \
 
 LIBZEOS = -L . -l zeos
 
@@ -65,6 +66,9 @@ bootsect.s: bootsect.S
 entry.s: entry.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 	
+utiles_ts.s: utiles_ts.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
+	$(CPP) $(ASMFLAGS) -o $@ $<
+
 wrappers.s: wrappers.S $(INCLUDEDIR)/asm.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 

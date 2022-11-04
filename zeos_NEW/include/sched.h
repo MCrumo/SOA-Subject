@@ -11,6 +11,7 @@
 
 #define NR_TASKS      10
 #define KERNEL_STACK_SIZE	1024
+#define QUANTUM 6
 
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 
@@ -19,6 +20,7 @@ struct task_struct {
   struct list_head list; //llista metaforica perq no sabem implementar una de veritat xd lol el nacho en sabria jeje sry
   page_table_entry * dir_pages_baseAddr;
   unsigned int kernel_esp; /* Posició de la pila de sistema */
+  unsigned long quantum;
 };
 
 union task_union {
@@ -39,6 +41,14 @@ void init_task1(void);
 void init_idle(void);
 
 void init_sched(void);
+
+int needs_sched_rr();
+
+void sched_next_rr();
+
+void update_process_state_rr(struct task_struct *t, struct list_head *dst);
+
+void schedule(void);
 
 struct task_struct * current();
 

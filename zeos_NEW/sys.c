@@ -19,6 +19,8 @@
 #define ESCRIPTURA 1
 
 extern int zeos_ticks;
+extern struct list_head freequeue, readyqueue;
+int pid_next = 2;
 
 int check_fd(int fd, int permissions)
 {
@@ -35,6 +37,11 @@ int sys_ni_syscall()
 int sys_getpid()
 {
 	return current()->PID;
+}
+
+int ret_from_fork()
+{
+    return 0;
 }
 
 int sys_fork()
@@ -102,7 +109,7 @@ int sys_fork()
     int SHARED_SPACE = NUM_PAG_KERNEL + NUM_PAG_CODE;
     int TOTAL_SPACE = NUM_PAG_CODE + NUM_PAG_KERNEL + NUM_PAG_DATA;
 
-    for(int i = SHARED_SPACE; i < TOTAL_SPACE; ++i){
+    for(int i = SHARED_SPACE; i < TOTAL_SPACE; ++i) {
         unsigned int temp_page = i + PAG_LOG_INIT_DATA;
         set_ss_pag(father_PT, temp_page, num_pagina[i]);
         copy_data((void *) (i << 12), (void *) (temp_page << 12), PAGE_SIZE); // pag 4KB, shift 12bits
