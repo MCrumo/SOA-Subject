@@ -44,25 +44,26 @@ int ret_from_fork()
     return 0;
 }
 
-int globalpid = 100;
 int sys_fork()
 {
+    int PID=-1; //Encara cal? mantinc, pero més tard en realitat ho edito...
+
     // Error si freequeue buida
-    if(list_empty(&freequeue)) return -ENOMEM;
+    if(list_empty(&freequeue)) return -EAGAIN;
 
     // Agafem primer task struct
     struct list_head *first_elem = list_first(&freequeue);
     list_del(first_elem);
-    union task_union *child = (union task_union*)list_head_to_task_struct(first_elem); //PCB del fill
+    struct task_struct *child_ts = list_head_to_task_struct(first_elem); //PCB del fill
 
     // Heretem dades sistema del pare al fill
     copy_data((void*)current(), (void*)child_ts, sizeof(union task_union));
 
     // Inicialitzo pagines fill
-	allocate_DIR((struct task_struct*)child); // Necessito "child_ts->dir_pages_baseAddr = "????
+    allocate_DIR(child_ts); // Necessito "child_ts->dir_pages_baseAddr = "????
 
     // Busquem pagines per mapejar-hi les logiques del fill, error si no hi ha suficients lliures
-    page_table_entry  *child_PT = get_PT(&child->task);
+    page_table_entry  *child_ts_PT = get_PT(child_ts);
 
     //CODI SET PAGES
     // Apartat d)
@@ -78,8 +79,8 @@ int sys_fork()
             }
             
             // PCB de nou a la freequeue
-            list_add_tail(&child_ts->task.list, &freequeue);
-            return -EAGAIN; //Retornem error
+            list_add_tail(&child_ts->list, &freequeue);
+            return -ENOMEM; //Retornem error
         }
     }
 
@@ -88,13 +89,15 @@ int sys_fork()
 
     // Page table entries for the system code and data and for the user code
     // e.ii.A) Código de sistema y usuario
+    unsigned int father_page;
     for(int i = 0; i < NUM_PAG_KERNEL; ++i) {
-        set_ss_pag(child_PT, i, get_frame(parent_PT, i));
+        father_page = get_frame(father_PT, i);
+        set_ss_pag(child_ts_PT, i, father_PT);
     }
 
     for(int i = 0; i < NUM_PAG_CODE; ++i) {
-        set_ss_pag(child_PT, PAG_LOG_INIT_CODE+i, get_frame(parent_PT, PAG_LOG_INIT_CODE+i));
-
+        father_page = get_frame(father_PT, PAG_LOG_INIT_CODE + i);
+        set_ss_pag(child_ts_PT, PAG_LOG_INIT_CODE + i, father_PT);
     }
 
     // e.ii.B) Page table entries for the user data+stack have to point to new allocated pages which hold this region
@@ -106,18 +109,19 @@ int sys_fork()
     int SHARED_SPACE = NUM_PAG_KERNEL + NUM_PAG_CODE;
     int TOTAL_SPACE = NUM_PAG_CODE + NUM_PAG_KERNEL + NUM_PAG_DATA;
 
-    for(int i = SHARED_SPACE; i < TOTAL_SPACE; i++){
-		set_ss_pag(parent_PT, i+NUM_PAG_DATA, get_frame(child_PT, i));
-        copy_data((void *) (i << 12), (void *) ((i+NUM_PAG_DATA) << 12), PAGE_SIZE);
-		del_ss_pag(parent_PT, i+NUM_PAG_DATA);
-	}
+    for(int i = SHARED_SPACE; i < TOTAL_SPACE; ++i) {
+        unsigned int temp_page = i + PAG_LOG_INIT_DATA;
+        set_ss_pag(father_PT, temp_page, num_pagina[i]);
+        copy_data((void *) (i << 12), (void *) (temp_page << 12), PAGE_SIZE); // pag 4KB, shift 12bits
+        del_ss_pag(father_PT, temp_page);
+    }
 
     // FLUSH DE TLB AL FINNNN
     set_cr3(get_DIR(current()));
 
     // Apartat f) Assignem nou PID i incrementem contador general
-    child->task.PID=++globalpid;
-	child->task.state=ST_READY;
+    PID = pid_next++;
+    child_ts->PID = PID;
 
     /* Apartat h)
     Representació stack actual per saber on fer les modificacions pertinents
@@ -134,13 +138,14 @@ int sys_fork()
     
     */
     
-    ((unsigned long *)KERNEL_ESP(child))[-0x13] = (unsigned long) 0; // valor fake ebp
-	((unsigned long *)KERNEL_ESP(child))[-0x12] = (unsigned long)&ret_from_fork; // direcció de retorn
-	child->task.kernel_esp = 	&((unsigned long *)KERNEL_ESP(child))[-0x13];
+    
+    union task_union * child_tu = (union task_union *) child_ts;
+    ((unsigned long *)KERNEL_ESP(child_tu))[-0x13] = (unsigned long) 0; // valor fake ebp
+    ((unsigned long *)KERNEL_ESP(child_tu))[-0x12] = (unsigned long) ret_from_fork; // direcció de retorn
+    child_ts->kernel_esp = &((unsigned long *)KERNEL_ESP(child_tu))[-0x13];
 
     // Apartat j) retornem PID fill
-    list_add_tail(&(child->task.list), &readyqueue);
-	return child->task.PID;
+    return PID;
 }
 
 void sys_exit()

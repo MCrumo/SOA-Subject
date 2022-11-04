@@ -110,35 +110,58 @@ getpid_NOerror:
 	ret
 
 ENTRY(fork)
-	push %ebp
+	pushl %ebp
 	mov %esp,%ebp
 
-	push %edx
-	push %ecx
-
-	movl $2, %eax
-
-	#push %ecx
 	#push %edx
+	#push %ecx
 
-	push $sys_fork_ret
-	push %ebp
-	mov %esp,%ebp
+	movl $0x2, %eax
+
+    pushl %edx
+	pushl %ecx
+
+	#push $sys_fork_ret
+	#push %ebp
+	#mov %esp,%ebp
+    pushl %ebp
+	movl %esp,%ebp
 
 	# ######## ## ## #         ____  
 	sysenter # ## ## ## # <3  |---   |\ |
     # ######## ## ## #        |____  | \| .
 
 sys_fork_ret:
-	pop %ebp
-	add $4, %esp
-	pop %edx
-	pop %ecx
-	cmp $0, %eax
+	popl %ebp
+	addl $4, %esp
+	popl %edx
+	popl %ecx
+	cmpl $0, %eax
 	jge sys_fork_NOerror
-	neg %eax
-	mov %eax, errno
-	mov -1, %eax
+	negl %eax
+	movl %eax, errno
+	movl -1, %eax
 sys_fork_NOerror:
-	pop %ebp
+	popl %ebp
+	ret
+
+ENTRY(exit)
+	pushl %ebp
+	mov %esp,%ebp
+
+    movl $0x1, %eax
+	pushl %edx
+	pushl %ecx
+
+    pushl %ebp
+	movl %esp,%ebp
+    
+	sysenter
+
+sys_exit_ret:
+	popl %ebp
+	addl $4, %esp
+	popl %edx
+	popl %ecx
+	popl %ebp
 	ret
