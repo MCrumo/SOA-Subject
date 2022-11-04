@@ -12,64 +12,47 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
     gettime();
     
     char *buff;
+    char *buff_espais;
+    buff_espais = "\n===============\n\n";
 
-    /*write*/
-    if(write(1, "\n***** \n", 9) == -1) perror();
+    /*write____________________________________________________________________*/
+    if(write(1, buff_espais, strlen(buff_espais)) == -1) perror();
     buff = "\n Test de write a user.c\n";
     if(write(1, buff, strlen(buff)) == -1) perror();
-    if(write(1, "***** \n", 9) == -1) perror();
-    
+    if(write(1, buff_espais, strlen(buff_espais)) == -1) perror();
 
-    /*gettime*/
+    /*gettime__________________________________________________________________*/
     buff = "\n Test de gettime a user.c\n";
     if(write(1, buff, strlen(buff)) == -1) perror();
     itoa(gettime(), buff); 
     if(write(1, buff, strlen(buff)) == -1) perror();
     buff = " resultat de gettime())\n";
     if(write(1, buff, strlen(buff)) == -1) perror();
-    buff = "***** \n\n";
-    if(write(1, buff, strlen(buff)) == -1) perror();
+    if(write(1, buff_espais, strlen(buff_espais)) == -1) perror();
 
-    /*getpid*/
-    buff = "\n [getpid] My PID: ";
+    /*getpid___________________________________________________________________*/
+    buff = "\n Test de getpid: El meu PID: ";
     if(write(1, buff, strlen(buff)) == -1) perror();
     int pid = getpid();
     itoa(pid, buff);
     if(write(1, buff, strlen(buff)) == -1) perror();
-    buff = "***** \n\n";
-    if(write(1, buff, strlen(buff)) == -1) perror();
-
-    /*fork
-    buff = "[fork] Forking... \n CHIDL PID: ";
-    if(write(1, buff, strlen(buff)) == -1) perror();
-    int pid_child = fork();
-    itoa(pid_child, buff);
-    if(write(1, buff, strlen(buff)) == -1) perror();
-
-    buff = "\n\n";
-    if(write(1, buff, strlen(buff)) == -1) perror();
-    buff = "\n[fork] Forking AGAIN... \n CHIDL PID: ";
-    if(write(1, buff, strlen(buff)) == -1) perror();
-    pid_child = fork();
-    itoa(pid_child, buff);
-    if(write(1, buff, strlen(buff)) == -1) perror();
-
-
-    buff = "\n\n[fork] Job is done. \n ***** \n\n";
-    if(write(1, buff, strlen(buff)) == -1) perror();*/
+    if(write(1, buff_espais, strlen(buff_espais)) == -1) perror();
     
+    /*test fork________________________________________________________________*/
+    buff="\n Test de fork \n\n";
+    if(write(1, buff, strlen(buff)) == -1) perror();
     
-    /*****FORK TRUE TEST***/
-    int child = fork();
-    if(child == 0){
-        buff="I am the CHILD and my PID is ";
+    int pid = fork();
+    if(pid == 0){
+        buff="Soc el procés fill, el meu PID: ";
         if(write(1, buff, strlen(buff)) == -1) perror();
         itoa(getpid(), buff);
         if(write(1, buff, strlen(buff)) == -1) perror();
         buff="\n";
         if(write(1, buff, strlen(buff)) == -1) perror();
         exit();
-        buff="Child exited with PID ";
+        
+        buff="Procés fill finalitza amb PID: ";
         if(write(1, buff, strlen(buff)) == -1) perror();
         itoa(getpid(), buff);
         if(write(1, buff, strlen(buff)) == -1) perror();
@@ -77,13 +60,18 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
         if(write(1, buff, strlen(buff)) == -1) perror();
     }
     else{
-        buff="I am the FATHER and my PID is ";
+        buff="Soc el procés pare, el meu PID: ";
         if(write(1, buff, strlen(buff)) == -1) perror();
         itoa(getpid(), buff);
         if(write(1, buff, strlen(buff)) == -1) perror();
         buff="\n";
         if(write(1, buff, strlen(buff)) == -1) perror();
     }
-        
+    /*_______________________________fi testeig________________________________*/
+    
+    /*
+     El fork ens dona page fault, no ho hem sabut arreglar, mirar-nos-ho post exams
+     */
+    
     while(1) {}
 }
