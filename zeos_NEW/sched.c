@@ -124,11 +124,7 @@ void init_task1(void)
 }
 
 void inner_task_switch(union task_union *new_task){
-	/*Update the pointer to the system stack to point to the stack of new_task. This step depends
-	on the implemented mechanism to enter the system. In the case that the int assembly
-	instruction is used to invoke the system code, TSS.esp0 must be modified to make it point
-	to the stack of new_task. If the system code is invoked using sysenter, MSR number 0x175
-	must be also modified.*/
+	/*Update the pointer to the system stack to point to the stack of new_task. This step depends on the implemented mechanism to enter the system. In the case that the int assembly instruction is used to invoke the system code, TSS.esp0 must be modified to make it point to the stack of new_task. If the system code is invoked using sysenter, MSR number 0x175 must be also modified.*/
 	tss.esp0 = KERNEL_ESP((union task_union *)new_task);
 	writeMSR(0x175, (int) tss.esp0);
 

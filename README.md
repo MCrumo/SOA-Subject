@@ -11,6 +11,7 @@ https://github.com/hialvaro/ZeOS-SOA/commits?before=da2160715d88cd53a9dcb3d6fb75
 
 ### Includes que per arreglar warnings
 - A sched.c fem un include de interrupt.h perquè sinó ens salta un waning de implicit declaration de writeMSR a la linia 117
+- El codi del: https://github.com/nilquera/SOA/blob/master/ZeOS/sys.c a la linia 78 i 79, modifica unes posicions diferents que nosaltres, linies 136, 137, ens pot donar problemes amb el fork
 
 
 ### Git commands
