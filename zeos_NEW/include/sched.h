@@ -21,6 +21,7 @@ struct task_struct {
   page_table_entry * dir_pages_baseAddr;
   unsigned int kernel_esp; /* Posició de la pila de sistema */
   unsigned long quantum;
+  enum state_t state;
 };
 
 union task_union {

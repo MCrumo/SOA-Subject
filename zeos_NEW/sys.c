@@ -56,10 +56,10 @@ int sys_fork()
     union task_union *child = (union task_union*)list_head_to_task_struct(first_elem); //PCB del fill
 
     // Heretem dades sistema del pare al fill
-    copy_data((void*)current(), (void*)child_ts, sizeof(union task_union));
+    copy_data((void*)current(), (void*)child, sizeof(union task_union));
 
     // Inicialitzo pagines fill
-	allocate_DIR((struct task_struct*)child); // Necessito "child_ts->dir_pages_baseAddr = "????
+	allocate_DIR((struct task_struct*)child); // Necessito "child->task_struct.dir_pages_baseAddr = "????
 
     // Busquem pagines per mapejar-hi les logiques del fill, error si no hi ha suficients lliures
     page_table_entry  *child_PT = get_PT(&child->task);
@@ -78,7 +78,7 @@ int sys_fork()
             }
             
             // PCB de nou a la freequeue
-            list_add_tail(&child_ts->task.list, &freequeue);
+            list_add_tail(&child->task.list, &freequeue);
             return -EAGAIN; //Retornem error
         }
     }
@@ -89,17 +89,17 @@ int sys_fork()
     // Page table entries for the system code and data and for the user code
     // e.ii.A) Código de sistema y usuario
     for(int i = 0; i < NUM_PAG_KERNEL; ++i) {
-        set_ss_pag(child_PT, i, get_frame(parent_PT, i));
+        set_ss_pag(child_PT, i, get_frame(father_PT, i));
     }
 
     for(int i = 0; i < NUM_PAG_CODE; ++i) {
-        set_ss_pag(child_PT, PAG_LOG_INIT_CODE+i, get_frame(parent_PT, PAG_LOG_INIT_CODE+i));
+        set_ss_pag(child_PT, PAG_LOG_INIT_CODE + i, get_frame(father_PT, PAG_LOG_INIT_CODE+i));
 
     }
 
     // e.ii.B) Page table entries for the user data+stack have to point to new allocated pages which hold this region
     for(int i = 0; i < NUM_PAG_DATA; ++i) {
-        set_ss_pag(child_ts_PT, PAG_LOG_INIT_DATA + i, num_pagina[i]);
+        set_ss_pag(child_PT, PAG_LOG_INIT_DATA + i, num_pagina[i]);
     }
 
     // +espai al pare per copiar pagines de pare a fill amb TLB
@@ -107,17 +107,17 @@ int sys_fork()
     int TOTAL_SPACE = NUM_PAG_CODE + NUM_PAG_KERNEL + NUM_PAG_DATA;
 
     for(int i = SHARED_SPACE; i < TOTAL_SPACE; i++){
-		set_ss_pag(parent_PT, i+NUM_PAG_DATA, get_frame(child_PT, i));
-        copy_data((void *) (i << 12), (void *) ((i+NUM_PAG_DATA) << 12), PAGE_SIZE);
-		del_ss_pag(parent_PT, i+NUM_PAG_DATA);
+		set_ss_pag(father_PT, i+NUM_PAG_DATA, get_frame(child_PT, i));
+        copy_data((void *)(i << 12), (void *)((i + NUM_PAG_DATA) << 12), PAGE_SIZE);
+		del_ss_pag(father_PT, i + NUM_PAG_DATA);
 	}
 
     // FLUSH DE TLB AL FINNNN
     set_cr3(get_DIR(current()));
 
     // Apartat f) Assignem nou PID i incrementem contador general
-    child->task.PID=++globalpid;
-	child->task.state=ST_READY;
+    child->task.PID = ++globalpid;
+	child->task.state = ST_READY;
 
     /* Apartat h)
     Representació stack actual per saber on fer les modificacions pertinents
@@ -136,7 +136,7 @@ int sys_fork()
     
     ((unsigned long *)KERNEL_ESP(child))[-0x13] = (unsigned long) 0; // valor fake ebp
 	((unsigned long *)KERNEL_ESP(child))[-0x12] = (unsigned long)&ret_from_fork; // direcció de retorn
-	child->task.kernel_esp = 	&((unsigned long *)KERNEL_ESP(child))[-0x13];
+	child->task.kernel_esp = &((unsigned long *)KERNEL_ESP(child))[-0x13];
 
     // Apartat j) retornem PID fill
     list_add_tail(&(child->task.list), &readyqueue);

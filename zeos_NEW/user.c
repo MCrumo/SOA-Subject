@@ -30,7 +30,7 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
     buff = "***** \n\n";
     if(write(1, buff, strlen(buff)) == -1) perror();
 
-    /**********GETPID********/
+    /*getpid*/
     buff = "\n [getpid] My PID: ";
     if(write(1, buff, strlen(buff)) == -1) perror();
     int pid = getpid();
@@ -39,7 +39,7 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
     buff = "***** \n\n";
     if(write(1, buff, strlen(buff)) == -1) perror();
 
-    /*********FORK**********/
+    /*fork
     buff = "[fork] Forking... \n CHIDL PID: ";
     if(write(1, buff, strlen(buff)) == -1) perror();
     int pid_child = fork();
@@ -56,7 +56,34 @@ int __attribute__ ((__section__(".text.main"))) main(void) {
 
 
     buff = "\n\n[fork] Job is done. \n ***** \n\n";
-    if(write(1, buff, strlen(buff)) == -1) perror();
+    if(write(1, buff, strlen(buff)) == -1) perror();*/
+    
+    
+    /*****FORK TRUE TEST***/
+    int child = fork();
+    if(child == 0){
+        buff="I am the CHILD and my PID is ";
+        if(write(1, buff, strlen(buff)) == -1) perror();
+        itoa(getpid(), buff);
+        if(write(1, buff, strlen(buff)) == -1) perror();
+        buff="\n";
+        if(write(1, buff, strlen(buff)) == -1) perror();
+        exit();
+        buff="Child exited with PID ";
+        if(write(1, buff, strlen(buff)) == -1) perror();
+        itoa(getpid(), buff);
+        if(write(1, buff, strlen(buff)) == -1) perror();
+        buff="\n";
+        if(write(1, buff, strlen(buff)) == -1) perror();
+    }
+    else{
+        buff="I am the FATHER and my PID is ";
+        if(write(1, buff, strlen(buff)) == -1) perror();
+        itoa(getpid(), buff);
+        if(write(1, buff, strlen(buff)) == -1) perror();
+        buff="\n";
+        if(write(1, buff, strlen(buff)) == -1) perror();
+    }
         
     while(1) {}
 }
