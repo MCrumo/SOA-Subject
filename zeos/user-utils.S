@@ -100,3 +100,13 @@ ENTRY(get_stats)
 	popl %ebp
 	ret
 
+/* void *alloc() */
+ENTRY(alloc)
+	pushl %ebp
+	movl %esp, %ebp
+	movl $21, %eax
+	call syscall_sysenter
+	test %eax, %eax
+	js nok	// if (eax < 0) -->
+	popl %ebp
+	ret

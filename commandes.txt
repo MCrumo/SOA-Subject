@@ -1,3 +1,6 @@
+==========================================================================================================
+========================================= DEBUGAR BOCHS ==================================================
+==========================================================================================================
 DEBUGAR baix nivell bochs:
 	objdump -d system | less  --> per buscar al less amb /nomBusqueda
 	make emuldbg
@@ -5,20 +8,20 @@ DEBUGAR baix nivell bochs:
 	c 	-> continue
 	print-stack 	-> print stack
 	b 0xaddr 	-> crar breackpoint
-	
+
 ==========================================================================================================
 ========================================= PRACTICA JUEGO =================================================
 ==========================================================================================================
 thread principal de videojuego, va hacer un spam de otro thread
 
- |								|
- | -> 	alloc() devolver la 					| -> dump_screen
+ |											|
+ | -> 	alloc() devolver la 				| -> dump_screen
  |		primera pag log 4KB 				|	interpreta matrix de 25fx80c
  |		libres, para dibujar la 			|	donde cada posicion hay dos B
  |		pantalla en un buffer que			|	1r->COLOR 2n->ASCII
  |		luego el 2o thread va a 			|
- |		dibujar					|
- |								|
+ |		dibujar								|
+ |											|
  |	get_key(char *c) kbd_init buffer
  |			que guarda la teclas
  |			que se van pulsando
@@ -33,5 +36,4 @@ thread principal de videojuego, va hacer un spam de otro thread
 ==========================================================================================================
 ==========================================================================================================
 
-en el task_strukt creo un campo list head que es lo que encolo
 	

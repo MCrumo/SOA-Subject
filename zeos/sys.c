@@ -236,3 +236,24 @@ int sys_get_stats(int pid, struct stats *st)
   }
   return -ESRCH; /*ESRCH */
 }
+
+int sys_alloc()
+{
+  // get_frame(id_pl) retorna su pag associada i 0 si esta vacia
+  unsigned int fpage;
+  int lpage;
+  int found = 0;
+  for (int i = NUM_PAG_KERNEL+NUM_PAG_CODE+NUM_PAG_DATA; i < TOTAL_PAGES && !found; ++i){
+    fpage = get_frame(get_PT(current()), i);
+    if (fpage == 0) {
+      lpage = i;
+      found = 1;
+    }
+  }
+  if (found){
+    return lpage;
+  }
+  else {
+    return -ENOMEM;
+  }
+}
