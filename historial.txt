@@ -1,0 +1,11 @@
+14/11__________________________________________________________________________________
+    Començem amb la implementació de alloc()
+    
+    Afegir a user-utils.S el wrapper ENTRY(alloc), salvat context i fa la call a sys_alloc().
+    Afegim a sys_call_table.S, a l'entrada 21 la crida a sistema sys_alloc()
+    Afegim a libc.h la funció que declarem a sys_alloc()
+    Afegim a sys.c la funció sys_alloc()
+    
+    //iterar per la taula de pàgines del procés. Per cada pàgina lògica del procés, mirem si està o no buida fent get_frame(id_pagina_logica), si retorna 0 significa que està buida. Retornem la pagina aquesta o error no memoria que processarem després.
+    les 256 primeres kernel, 8 codi, 20 data, resta lliures (total 1024)
+    

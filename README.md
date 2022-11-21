@@ -32,7 +32,7 @@ INIT -> Create a new Git repo from a folder in your local machine
 
 EXAMPLES:
 
-  git push -A
+  git add -A
 
   git commit -m "Added readme.md" -m "further description if needed"
   
