@@ -107,6 +107,20 @@ ENTRY(alloc)
 	movl $21, %eax
 	call syscall_sysenter
 	test %eax, %eax
-	js nok	// if (eax < 0) -->
+	js nok;	// if (eax < 0) -->
+	popl %ebp
+	ret
+
+	
+ENTRY(dealloc)
+	pushl %ebp
+	movl %esp, %ebp
+	pushl %ebx
+	movl 0x8(%ebp), %ebx;   // *address
+	movl $22, %eax //entrada 22
+	call syscall_sysenter
+	popl %ebx
+	test %eax, %eax
+	js nok;	// if (eax < 0) -->
 	popl %ebp
 	ret

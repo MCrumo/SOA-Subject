@@ -237,9 +237,9 @@ int sys_get_stats(int pid, struct stats *st)
   return -ESRCH; /*ESRCH */
 }
 
-int sys_alloc()
+void * sys_alloc()
 {
-  // get_frame(id_pl) retorna su pag associada i 0 si esta vacia
+  // get_frame(id_pl) retorna su pag asociada i 0 si esta vacia
   unsigned int fpage;
   int lpage;
   int found = 0;
@@ -250,10 +250,39 @@ int sys_alloc()
       found = 1;
     }
   }
+  
   if (found){
-    return lpage;
+      int frame = alloc_frame();
+      if (frame == -1) {
+          return (void *)-ENOMEM;
+      }
+      
+      set_ss_pag(get_PT(current()), lpage, frame);
+      unsigned int logical_address = lpage << 12;
+      
+    return (void *) logical_address;
   }
   else {
-    return -ENOMEM;
+    return (void *) -ENOMEM;
   }
+}
+
+int sys_dealloc(void *address) {
+    //comprovar que no sigui de kernel etc i que estigui associada a una fisica
+    unsigned int lpage = (unsigned int)address >> 12;
+    if (lpage < NUM_PAG_KERNEL+NUM_PAG_CODE+NUM_PAG_DATA && lpage < TOTAL_PAGES) {
+        return -EACCES;
+    }
+    
+    page_table_entry * PT = get_PT(current());
+    unsigned int frame = get_frame(PT, lpage);
+    if (frame == 0) { //get frame
+        return -EFAULT;
+    }
+    
+    free_frame(frame);
+    del_ss_pag(PT, lpage);
+    set_cr3(get_DIR(current())); //flush tlb
+    
+    return 1;
 }

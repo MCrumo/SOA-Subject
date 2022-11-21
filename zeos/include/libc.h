@@ -30,4 +30,6 @@ int get_stats(int pid, struct stats *st);
 
 void *alloc();
 
+int dealloc(void *address);
+
 #endif  /* __LIBC_H__ */
