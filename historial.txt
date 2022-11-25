@@ -1,3 +1,6 @@
+
+Parametres de createthread VEN PASSATS??¿¿¿¿
+
 14/11__________________________________________________________________________________
     Començem amb la implementació de alloc()
     

@@ -267,7 +267,8 @@ void * sys_alloc()
   }
 }
 
-int sys_dealloc(void *address) {
+int sys_dealloc(void *address) 
+{
     //comprovar que no sigui de kernel etc i que estigui associada a una fisica
     unsigned int lpage = (unsigned int)address >> 12;
     if (lpage < NUM_PAG_KERNEL+NUM_PAG_CODE+NUM_PAG_DATA && lpage < TOTAL_PAGES) {
@@ -287,7 +288,23 @@ int sys_dealloc(void *address) {
     return 1;
 }
 
-int sys_createthread(int (*function)(void *param), void *param){
+int sys_createthread(int (*function)(void *param), void *param)
+{
+  struct list_head *lhcurrent = NULL;
+  union task_union *uchild;
+
+  /* Any free task_struct? */
+  if (list_empty(&freequeue)) return -ENOMEM;
+  lhcurrent = list_first(&freequeue);
+  list_del(lhcurrent);
+
+  uchild = (union task_union*)list_head_to_task_struct(lhcurrent);
+
+  /* Copy the parent's task struct to child's */
+  copy_data(current(), uchild, sizeof(union task_union));
+
+  /* CREAR UN CAMP global_TID i TID a la task_union?? (shced.h) */
+
   return 0;
 }
 
