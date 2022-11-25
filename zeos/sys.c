@@ -286,3 +286,11 @@ int sys_dealloc(void *address) {
     
     return 1;
 }
+
+int sys_createthread(int (*function)(void *param), void *param){
+  return 0;
+}
+
+int sys_terminatethread(){
+  return 0;
+}

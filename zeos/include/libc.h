@@ -32,4 +32,8 @@ void *alloc();
 
 int dealloc(void *address);
 
+int createthread(int (*function)(void *param), void *param);
+
+int terminatethread();
+
 #endif  /* __LIBC_H__ */

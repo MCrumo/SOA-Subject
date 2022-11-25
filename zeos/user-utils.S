@@ -111,7 +111,7 @@ ENTRY(alloc)
 	popl %ebp
 	ret
 
-	
+/* int dealloc(void *address) */	
 ENTRY(dealloc)
 	pushl %ebp
 	movl %esp, %ebp
@@ -124,3 +124,30 @@ ENTRY(dealloc)
 	js nok;	// if (eax < 0) -->
 	popl %ebp
 	ret
+
+/* int createthread(int (*function)(void *param), void *param) */
+ENTRY(createthread) // com passar PARAMETRES
+	pushl %ebp
+	movl %esp, %ebp
+	pushl %ebx;  // Save EBX, ESI and EDI if modified
+	movl $23, %eax //entrada 23
+	movl 0x8(%ebp), %ebx;	//int (*function)(void *param)
+	movl 0xC(%ebp), %ecx;	//void *param
+	call syscall_sysenter
+	popl %ebx
+	test %eax, %eax
+	js nok	// if (eax < 0) -->
+	popl %ebp
+	ret
+
+/* int terminatethread() */
+ENTRY(terminatethread)
+	pushl %ebp
+	movl %esp, %ebp
+	movl $24, %eax 			//entrada 24
+	call syscall_sysenter
+	test %eax, %eax
+	js nok;					// if (eax < 0) -->
+	popl %ebp
+	ret
+
