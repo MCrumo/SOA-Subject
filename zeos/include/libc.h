@@ -36,4 +36,6 @@ int createthread(int (*function)(void *param), void *param);
 
 int terminatethread();
 
+int dump_screen(void *address);
+
 #endif  /* __LIBC_H__ */

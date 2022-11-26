@@ -308,6 +308,12 @@ int sys_createthread(int (*function)(void *param), void *param)
   return 0;
 }
 
-int sys_terminatethread(){
+int sys_terminatethread()
+{
   return 0;
+}
+
+int sys_dump_screen(void *address)
+{ //address corresponding to an 80x25 matrix
+  return 0;  
 }

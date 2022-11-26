@@ -151,3 +151,16 @@ ENTRY(terminatethread)
 	popl %ebp
 	ret
 
+/* int dump_screen(void *address) */	
+ENTRY(dump_screen)
+	pushl %ebp
+	movl %esp, %ebp
+	pushl %ebx
+	movl 0x8(%ebp), %ebx;   // *address
+	movl $25, %eax 			//entrada 25
+	call syscall_sysenter
+	popl %ebx
+	test %eax, %eax
+	js nok;					// if (eax < 0) -->
+	popl %ebp
+	ret

@@ -14,22 +14,25 @@ DEBUGAR baix nivell bochs:
 ==========================================================================================================
 thread principal de videojuego, va hacer un spam de otro thread
 
- |											|
- | -> 	alloc() devolver la 				| -> dump_screen
+thread1		
+ |							    thread2
+ |								|
+ | -> 	alloc() devolver la 					| -> dump_screen
  |		primera pag log 4KB 				|	interpreta matrix de 25fx80c
  |		libres, para dibujar la 			|	donde cada posicion hay dos B
  |		pantalla en un buffer que			|	1r->COLOR 2n->ASCII
  |		luego el 2o thread va a 			|
- |		dibujar								|
- |											|
- |	get_key(char *c) kbd_init buffer
- |			que guarda la teclas
- |			que se van pulsando
- |	get_key va a retornar la 1a tecla del buffer
+ |		dibujar					|
+ |								|
+ |	get_key(char *c) kbd_init buffer			|
+ |			que guarda la teclas			|
+ |			que se van pulsando			|
+ |	get_key va a retornar la 1a tecla del buffer		|
+ |								|
+ |	una vez a dibujado el thread1 le va a passar		|
+ |	al segundo thread					|
  |
- |	una vez a dibujado el thread le va a passar
- |	al segundo thread
- |
+ 
  la lista se va a tener que implementar en exclusión mutua -> habra que implementar semaforos
  
 ==========================================================================================================

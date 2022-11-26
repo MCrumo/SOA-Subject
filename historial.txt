@@ -1,5 +1,8 @@
 
+_______________________threads________________________________________________________
 Parametres de createthread VEN PASSATS??¿¿¿¿
+a sched.h declaracio de task_struc i task_union
+
 
 14/11__________________________________________________________________________________
     Començem amb la implementació de alloc()
@@ -11,4 +14,8 @@ Parametres de createthread VEN PASSATS??¿¿¿¿
     
     //iterar per la taula de pàgines del procés. Per cada pàgina lògica del procés, mirem si està o no buida fent get_frame(id_pagina_logica), si retorna 0 significa que està buida. Retornem la pagina aquesta o error no memoria que processarem després.
     les 256 primeres kernel, 8 codi, 20 data, resta lliures (total 1024)
-    
+
+_______________________keyboard________________________________________________________
+keyboard_handler esta a entry.S i alla crida a keyboard_routine
+keyboard_routine esta a interrupt.c i crida a printc_xy que esta a io.c
+
