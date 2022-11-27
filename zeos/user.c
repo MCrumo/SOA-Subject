@@ -49,10 +49,11 @@ int __attribute__ ((__section__(".text.main")))
     buff = "\n ALLOC FET\n";
     if(write(1, buff, strlen(buff)) == -1) perror();
 
-    for (int i = 0; i < 25*80; i += 1){
+    for (int i = 0; i < NUM_COLUMNS*NUM_ROWS*2; i += 2){
       buff = "fem...\n";
       if(write(1, buff, strlen(buff)) == -1) perror();
-      *(matrix + i) = 0x0361; //stos('t',0x04);
+      *(matrix + i) = 0x03;
+      *(matrix + i+1) = 0x61; //stos('t',0x04);
        
     }
 
