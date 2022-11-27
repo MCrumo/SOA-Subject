@@ -303,9 +303,24 @@ int sys_createthread(int (*function)(void *param), void *param)
   /* Copy the parent's task struct to child's */
   copy_data(current(), uchild, sizeof(union task_union));
 
-  /* CREAR UN CAMP global_TID i TID a la task_union?? (shced.h) */
+  /*
+  *  QUINES DADES HEM DE COPIAR EXACTAMENT entre thread 1 i 2 ???
+  *  com fer que EIP apunti a (*function) i SS a stak de |@ret|*func|*param|
+  */
 
-  return 0;
+  /* CREAR UN CAMP global_TID i TID a la task_union o qlq?? (shced.h) */
+  uchild->task.PID=++global_PID;
+
+   /* HEM DE FER UN stats to 0 o NO perq es compartit? */
+  init_stats(&(uchild->task.p_stats));
+
+  /* Queue child process into readyqueue */
+  uchild->task.state=ST_READY;
+  list_add_tail(&(uchild->task.list), &readyqueue);
+  
+  return uchild->task.PID; //   QUIN RETURN HEM DE FER
+
+  //S'HA DE CRIDAR A SYS_TERMINATETHREAD AQUI AL FINAL?
 }
 
 int sys_terminatethread()
@@ -315,5 +330,18 @@ int sys_terminatethread()
 
 int sys_dump_screen(void *address)
 { //address corresponding to an 80x25 matrix
+
+  // HI HA DETECCIO D'ERRORS ???
+  
+  Byte sizeof_parameter = 2;
+  int *aux = address;
+
+  for(Byte i = 0; i < NUM_ROWS; ++i){
+    int act_row = sizeof_parameter * NUM_COLUMNS * i;
+    for(Byte j = 0; j < NUM_COLUMNS; ++j){
+      printcc_xy(j, i, *(aux + act_row + (j * sizeof_parameter))); // @ini + FIL + COLact
+    }
+  }
+  
   return 0;  
 }

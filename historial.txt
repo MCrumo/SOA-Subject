@@ -1,7 +1,24 @@
 
 _______________________threads________________________________________________________
-Parametres de createthread BEN PASSATS??¿¿¿¿
+Parametres de createthread BEN PASSATS -> ?
+que ha de retornar int createthread() i terminate -> ? 
+mes dubtes al sys.c
+hem de canviar la programacio del scheduler perq sigui multi lvl i perq no faci set_cr3 entre threads -> ?
+cada vex que llamemos dump_screen tendremos que crear un thread? createthread(dump_screen(*screen))?
 a sched.h declaracio de task_struc i task_union
+
+_______________________screen_dump_____________________________________________________
+si volem declara un struct == pair<int,int> creem un .h o on ho fem -> ?
+hem fet #define al io.h i comentat el del io.c; es correcte -> ?
+quan ocupa un word i com es relaciona amb una pos de mem -> ?
+perque el make dona Warnings al interrupt.c -> ?
+
+_______________________keyboard________________________________________________________
+com declarem i a on el buffer de get_chey ->
+keyboard_handler esta a entry.S i alla crida a keyboard_routine
+keyboard_routine esta a interrupt.c i crida a printc_xy que esta a io.c
+
+
 
 
 ____________________alloc_14/11________________________________________________________
@@ -14,8 +31,4 @@ ____________________alloc_14/11_________________________________________________
     
     //iterar per la taula de pàgines del procés. Per cada pàgina lògica del procés, mirem si està o no buida fent get_frame(id_pagina_logica), si retorna 0 significa que està buida. Retornem la pagina aquesta o error no memoria que processarem després.
     les 256 primeres kernel, 8 codi, 20 data, resta lliures (total 1024)
-
-_______________________keyboard________________________________________________________
-keyboard_handler esta a entry.S i alla crida a keyboard_routine
-keyboard_routine esta a interrupt.c i crida a printc_xy que esta a io.c
 
