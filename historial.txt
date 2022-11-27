@@ -1,10 +1,10 @@
 
 _______________________threads________________________________________________________
-Parametres de createthread VEN PASSATS??¿¿¿¿
+Parametres de createthread BEN PASSATS??¿¿¿¿
 a sched.h declaracio de task_struc i task_union
 
 
-14/11__________________________________________________________________________________
+____________________alloc_14/11________________________________________________________
     Començem amb la implementació de alloc()
     
     Afegir a user-utils.S el wrapper ENTRY(alloc), salvat context i fa la call a sys_alloc().
