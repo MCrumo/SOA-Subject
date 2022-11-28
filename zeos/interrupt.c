@@ -45,7 +45,9 @@ void keyboard_routine()
 {
   unsigned char c = inb(0x60);
   
-  if (c&0x80) printc_xy(0, 0, char_map[c&0x7f]);
+  //if (c&0x80) printc_xy(0, 0, char_map[c&0x7f]);
+
+  if (c&0x80) write_to_buffer(char_map[c&0x7f]);
 }
 
 void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL)

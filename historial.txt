@@ -35,4 +35,46 @@ ____________________alloc_14/11_________________________________________________
     
     //iterar per la taula de pàgines del procés. Per cada pàgina lògica del procés, mirem si està o no buida fent get_frame(id_pagina_logica), si retorna 0 significa que està buida. Retornem la pagina aquesta o error no memoria que processarem després.
     les 256 primeres kernel, 8 codi, 20 data, resta lliures (total 1024)
+    
+    
+==========================================================================================================
+========================================= DEBUGAR BOCHS ==================================================
+==========================================================================================================
+DEBUGAR baix nivell bochs:
+	objdump -d system | less  --> per buscar al less amb /nomBusqueda
+	make emuldbg
+	r 	-> print registers
+	c 	-> continue
+	print-stack 	-> print stack
+	b 0xaddr 	-> crar breackpoint
+
+==========================================================================================================
+========================================= PRACTICA JUEGO =================================================
+==========================================================================================================
+thread principal de videojuego, va hacer un spam de otro thread
+
+thread1		
+ |							    thread2
+ |								|
+ | -> 	alloc() devolver la 					| -> dump_screen
+ |		primera pag log 4KB 				|	interpreta matrix de 25fx80c
+ |		libres, para dibujar la 			|	donde cada posicion hay dos B
+ |		pantalla en un buffer que			|	1r->COLOR 2n->ASCII
+ |		luego el 2o thread va a 			|
+ |		dibujar					|
+ |								|
+ |	get_key(char *c) kbd_init buffer			|
+ |			que guarda la teclas			|
+ |			que se van pulsando			|
+ |	get_key va a retornar la 1a tecla del buffer		|
+ |								|
+ |	una vez a dibujado el thread1 le va a passar		|
+ |	al segundo thread					|
+ |
+ 
+ la lista se va a tener que implementar en exclusión mutua -> habra que implementar semaforos
+ 
+==========================================================================================================
+==========================================================================================================
+==========================================================================================================
 

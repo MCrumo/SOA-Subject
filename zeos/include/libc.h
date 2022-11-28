@@ -38,4 +38,6 @@ int terminatethread();
 
 int dump_screen(void *address);
 
+int get_key(char* c);
+
 #endif  /* __LIBC_H__ */

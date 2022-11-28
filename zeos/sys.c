@@ -153,10 +153,11 @@ int sys_fork(void)
 
 #define TAM_BUFFER 512
 
-int sys_write(int fd, char *buffer, int nbytes) {
-char localbuffer [TAM_BUFFER];
-int bytes_left;
-int ret;
+int sys_write(int fd, char *buffer, int nbytes) 
+{
+  char localbuffer [TAM_BUFFER];
+  int bytes_left;
+  int ret;
 
 	if ((ret = check_fd(fd, ESCRIPTURA)))
 		return ret;
@@ -311,15 +312,15 @@ int sys_createthread(int (*function)(void *param), void *param)
 
   /* Hem de fer un alloc de pagina lliure, posar la pila de
    l'usuari i que torni per la pila de usr per executar la funcio*/
-  unsigned long* user_stack = (unsigned long)alloc_k();
+  unsigned long* user_stack = (unsigned long*)alloc_k();
 
   
   user_stack[1023] = (unsigned long)param;
   user_stack[1022] = (unsigned long)function;
   user_stack[1021] = NULL;
 //1023 ss; 1022 esp; 1021 palabestado; 1019 eip => on tenim el parametre; tocar esp i eip
- // uchild->stak[KERNEL_STACK_SIZE-2] = esp 
- // uchild->stak[KERNEL_STACK_SIZE-5] = eip
+  uchild->stack[KERNEL_STACK_SIZE-2] = &user_stack;  //esp 
+  uchild->stack[KERNEL_STACK_SIZE-5] = function;      //eip
 
 /*cambiar el contesto hw de este thread  modificar cont hw para que canduo vuelva a usr la pila 
 que utilizaras es a que acabo de alocatar i la instr que haras el la 1a instr de la funcion
@@ -365,4 +366,11 @@ int sys_dump_screen(void *address)
   }
   
   return 0;  
+}
+
+int sys_get_key(char* c)
+{
+  int isSomethingToRead = read_from_buffer(c);
+  if (isSomethingToRead) return 0;
+  else return -1;
 }

@@ -97,3 +97,29 @@ void printcc_xy(Byte mx, Byte my, short cc)
   x=cx;
   y=cy;
 }
+
+
+char circular_buff[BUFF_SIZE];
+int Head = 0;
+int Tail = 0;
+int IsFull_Flag = 0;
+
+void write_to_buffer(char c)
+{
+  if (IsFull_Flag == 0) { //the buff is not full
+    circular_buff[Head] = c;
+    Head = (Head + 1)%BUFF_SIZE;
+    if (Head == Tail) IsFull_Flag = 1;
+  }
+}
+
+int read_from_buffer(char* c)
+{
+  if ((Head == Tail)&&(IsFull_Flag != 1)) return -1; //the buffer us empty
+  else {
+    *c = circular_buff[Tail]; //AQUI DONA PG FAULT al accedir a *c
+    Tail = (Tail + 1)%BUFF_SIZE;
+    IsFull_Flag = 0;
+    return 0;
+  }
+}

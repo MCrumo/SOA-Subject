@@ -13,6 +13,23 @@ short stos(char ch, char color){  //screen to short
   return ch | col;
 } 
 
+int isWall(int i){
+  if ((i%NUM_COLUMNS==0&&i>NUM_ROWS)||(i>(NUM_COLUMNS*(NUM_ROWS-1)))) {
+    return 1; //esquerra i a baix
+  }
+  else if ((i>NUM_COLUMNS&&i<NUM_COLUMNS*2)||((i%NUM_COLUMNS-79)==0&&i>NUM_COLUMNS)){
+    return 1; //a dalt i dreta
+  }
+  else return 0;
+}
+int isRoof(int i){
+  if ((i>(NUM_COLUMNS*(NUM_ROWS-1)))||(i>NUM_COLUMNS&&i<NUM_COLUMNS*2)) return 1;
+  else return 0;
+}
+int isLateral(int i){
+  if ((i%NUM_COLUMNS==0&&i>NUM_ROWS)||((i%NUM_COLUMNS-79)==0&&i>NUM_COLUMNS)) return 1;
+  else return 0;
+}
 
 int __attribute__ ((__section__(".text.main")))
   main(void)
@@ -34,15 +51,32 @@ int __attribute__ ((__section__(".text.main")))
     if(write(1, buff, strlen(buff)) == -1) perror();
 
     for (int i = 0; i < NUM_COLUMNS*NUM_ROWS; ++i){
-      if (i == 0 || i == (NUM_COLUMNS*NUM_ROWS)-1) *(matrix + i) = stos('O',0x01);
-      else *(matrix + i) = stos('t',0x03);
+      if (isLateral(i)) *(matrix + i) = stos('+',0x03);
+      else if (isRoof(i)) *(matrix + i) = stos('+',0x03);
+      if (i==1500) *(matrix + i) = stos('O',0x02);
     }
 
-     buff = "\n MATRIU FETA TETE\n";
-     if(write(1, buff, strlen(buff)) == -1) perror();
+    buff = "\n MATRIU FETA TETE\n";
+    if(write(1, buff, strlen(buff)) == -1) perror();
      
-     dump_screen(matrix);
-     if (dealloc(matrix) == -1) perror();
+    dump_screen(matrix);
 
-  while(1) { }
+
+    if (dealloc(matrix) == -1) perror();
+
+  while(1) {
+
+    char *buffer;
+    char* c;
+
+    if (get_key(c) == 1){
+      
+      buff = "\nHi ha algo a llegir\n";
+      if(write(1, buff, strlen(buff)) == -1) perror();
+
+      buffer = *c;
+      if(write(1, buffer, strlen(buffer)) == -1) perror();
+
+    }
+  }
 }

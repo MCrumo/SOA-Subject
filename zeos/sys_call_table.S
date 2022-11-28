@@ -28,7 +28,7 @@ ENTRY (sys_call_table)
 	.long sys_createthread		//23 createthread
 	.long sys_terminatethread	//24 terminatethread
 	.long sys_dump_screen		//25 dump_screen
-	.long sys_ni_syscall		//26
+	.long sys_get_key			//26 get_key
 	.long sys_ni_syscall		//27
 	.long sys_ni_syscall		//28
 	.long sys_ni_syscall		//29

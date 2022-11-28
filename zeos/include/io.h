@@ -9,6 +9,7 @@
 
 #define NUM_COLUMNS 80
 #define NUM_ROWS    25
+#define BUFF_SIZE 8
 
 /** Screen functions **/
 /**********************/
@@ -20,5 +21,8 @@ void printk(char *string);
 
 void printcc(short cc);
 void printcc_xy(Byte x, Byte y, short cc);
+
+void write_to_buffer(char c);
+int read_from_buffer(char* c);
 
 #endif  /* __IO_H__ */

@@ -166,3 +166,17 @@ ENTRY(dump_screen)
 	js nok;					// if (eax < 0) -->
 	popl %ebp
 	ret
+
+/* int get_key(char* c) */
+ENTRY(get_key)
+	pushl %ebp
+	movl %esp, %ebp
+	pushl %ebx
+	movl 0x8(%ebp), %ebx;   // *address
+	movl $26, %eax 			//entrada 26
+	call syscall_sysenter
+	popl %ebx
+	test %eax, %eax
+	js nok;					// if (eax < 0) -->
+	popl %ebp
+	ret
