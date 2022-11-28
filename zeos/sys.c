@@ -20,6 +20,9 @@
 #define LECTURA 0
 #define ESCRIPTURA 1
 
+int global_PID=1000;
+int global_TID=0;
+
 void * get_ebp();
 
 int check_fd(int fd, int permissions)
@@ -48,8 +51,6 @@ int sys_getpid()
 {
 	return current()->PID;
 }
-
-int global_PID=1000;
 
 int ret_from_fork()
 {
@@ -237,7 +238,7 @@ int sys_get_stats(int pid, struct stats *st)
   return -ESRCH; /*ESRCH */
 }
 
-void * sys_alloc()
+unsigned int alloc_k()
 {
   // get_frame(id_pl) retorna su pag asociada i 0 si esta vacia
   unsigned int fpage;
@@ -254,17 +255,22 @@ void * sys_alloc()
   if (found){
       int frame = alloc_frame();
       if (frame == -1) {
-          return (void *)-ENOMEM;
+          return -ENOMEM;
       }
       
       set_ss_pag(get_PT(current()), lpage, frame);
       unsigned int logical_address = lpage << 12;
       
-    return (void *) logical_address;
+    return logical_address;
   }
   else {
-    return (void *) -ENOMEM;
+    return -ENOMEM;
   }
+}
+
+void * sys_alloc()
+{
+  return (void *) alloc_k();
 }
 
 int sys_dealloc(void *address) 
@@ -303,24 +309,37 @@ int sys_createthread(int (*function)(void *param), void *param)
   /* Copy the parent's task struct to child's */
   copy_data(current(), uchild, sizeof(union task_union));
 
-  /*
+  /* Hem de fer un alloc de pagina lliure, posar la pila de
+   l'usuari i que torni per la pila de usr per executar la funcio*/
+  unsigned long* user_stack = (unsigned long)alloc_k();
+
+  
+  user_stack[1023] = (unsigned long)param;
+  user_stack[1022] = (unsigned long)function;
+  user_stack[1021] = NULL;
+//1023 ss; 1022 esp; 1021 palabestado; 1019 eip => on tenim el parametre; tocar esp i eip
+ // uchild->stak[KERNEL_STACK_SIZE-2] = esp 
+ // uchild->stak[KERNEL_STACK_SIZE-5] = eip
+
+/*cambiar el contesto hw de este thread  modificar cont hw para que canduo vuelva a usr la pila 
+que utilizaras es a que acabo de alocatar i la instr que haras el la 1a instr de la funcion
+me alicao un pag para la pila de usr empilar parametro i poner un 0 (= dir de retorno)
+unsigned long * 1023 es la ultima y donde hay que comenzar a empilar
   *  QUINES DADES HEM DE COPIAR EXACTAMENT entre thread 1 i 2 ???
   *  com fer que EIP apunti a (*function) i SS a stak de |@ret|*func|*param|
   */
 
-  /* CREAR UN CAMP global_TID i TID a la task_union o qlq?? (shced.h) */
-  uchild->task.PID=++global_PID;
+  /* CREAR UN CAMP global_TID i TID a la task_union (shced.h) */
+  uchild->task.TID=++global_TID; // TID
 
    /* HEM DE FER UN stats to 0 o NO perq es compartit? */
-  init_stats(&(uchild->task.p_stats));
+  //init_stats(&(uchild->task.p_stats));
 
   /* Queue child process into readyqueue */
   uchild->task.state=ST_READY;
   list_add_tail(&(uchild->task.list), &readyqueue);
   
-  return uchild->task.PID; //   QUIN RETURN HEM DE FER
-
-  //S'HA DE CRIDAR A SYS_TERMINATETHREAD AQUI AL FINAL?
+  return 0; 
 }
 
 int sys_terminatethread()
@@ -330,16 +349,18 @@ int sys_terminatethread()
 
 int sys_dump_screen(void *address)
 { //address corresponding to an 80x25 matrix
-
-  // HI HA DETECCIO D'ERRORS ???
   
-  Byte sizeof_parameter = 2;
-  int *aux = address;
+  /* PERQUE AIXO DONA PG FAULT
+  unsigned int fpage = get_frame(get_PT(current()), (unsigned int)address);
+  if (fpage == 0) return -EACCES;*/
+  
+  short *aux = address;
+  int k = 0;
 
   for(Byte i = 0; i < NUM_ROWS; ++i){
-    int act_row = sizeof_parameter * NUM_COLUMNS * i;
     for(Byte j = 0; j < NUM_COLUMNS; ++j){
-      printcc_xy(j, i, *(aux + act_row + (j * sizeof_parameter))); // @ini + FIL + COLact
+      printcc_xy(j, i, *(aux + k)); 
+      ++k;
     }
   }
   

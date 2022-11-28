@@ -18,6 +18,7 @@ enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 
 struct task_struct {
   int PID;			/* Process ID. This MUST be the first field of the struct. */
+  int TID;
   page_table_entry * dir_pages_baseAddr;
   struct list_head list;	/* Task struct enqueuing */
   int register_esp;		/* position in the stack */

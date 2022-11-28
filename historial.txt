@@ -1,17 +1,21 @@
 
 _______________________threads________________________________________________________
-Parametres de createthread BEN PASSATS -> ?
-que ha de retornar int createthread() i terminate -> ? 
+S'ha de fer init del TID al fork; gobl_TID = 1 es correcte -> ? 
+Parametres de createthread ben passats -> SI
+que ha de retornar int createthread() i terminate -> o 0 o -1
 mes dubtes al sys.c
+NO hem de modificar el scheduler
 hem de canviar la programacio del scheduler perq sigui multi lvl i perq no faci set_cr3 entre threads -> ?
-cada vex que llamemos dump_screen tendremos que crear un thread? createthread(dump_screen(*screen))?
+cada vex que llamemos dump_screen tendremos que crear un thread? createthread(dump_screen(*screen))-> ?
 a sched.h declaracio de task_struc i task_union
 
 _______________________screen_dump_____________________________________________________
 si volem declara un struct == pair<int,int> creem un .h o on ho fem -> ?
-hem fet #define al io.h i comentat el del io.c; es correcte -> ?
-quan ocupa un word i com es relaciona amb una pos de mem -> ?
-perque el make dona Warnings al interrupt.c -> ?
+hem fet #define al io.h i comentat el del io.c; es correcte -> SI
+quan ocupa un word i com es relaciona amb una pos de mem -> posMem=1B
+perque el make dona Warnings al interrupt.c -> Normal
+com saber quin color correspon cada 0xXX -> fent proves
+com passar el NUM_ROW/COLS al user.c -> no es pot
 
 _______________________keyboard________________________________________________________
 com declarem i a on el buffer de get_chey ->

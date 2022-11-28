@@ -128,12 +128,14 @@ ENTRY(dealloc)
 /* int createthread(int (*function)(void *param), void *param) */
 ENTRY(createthread)			// PARAMETRES VEN PASSATS??¿¿¿¿
 	pushl %ebp
-	movl %esp, %ebp
+	movl %esp, %ebp			//HCER SAVE DEL ECX
 	pushl %ebx;  			// Save EBX, ESI and EDI if modified
+	pushl %ecx
 	movl $23, %eax 			//entrada 23
 	movl 0x8(%ebp), %ebx;	//int (*function)(void *param)
 	movl 0xC(%ebp), %ecx;	//void *param
 	call syscall_sysenter
+	popl %ecx
 	popl %ebx
 	test %eax, %eax
 	js nok					// if (eax < 0) -->

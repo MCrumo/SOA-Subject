@@ -1,13 +1,16 @@
 #include <libc.h>
 
+#define NUM_ROWS 25
+#define NUM_COLUMNS 80
+
 char buff[24];
 
 int pid;
 
 
 short stos(char ch, char color){  //screen to short
-  color = color << 8;
-  return (short)((ch & 0x00FF) | (color & 0xFF00));
+  short col = color << 8;
+  return ch | col;
 } 
 
 
@@ -18,29 +21,10 @@ int __attribute__ ((__section__(".text.main")))
      /* __asm__ __volatile__ ("mov %0, %%cr3"::"r" (0) ); */
      
      //provar d'escriure en la direccio de memoria etc
-
-  /*
-     char *buff;
-     buff = "\n Test de write a user.c\n";
-     if(write(1, buff, strlen(buff)) == -1) perror();
-
-  */
-    int NUM_ROWS = 25;
-    int NUM_COLUMNS = 80;
+    
     char *buff;
 
-    int sizeof_parameter = 2;
-    int *matrix;
-     
-/*
-    for(short i = 0; i < NUM_ROWS; ++i){
-      int act_row = sizeof_parameter * NUM_COLUMNS * i;
-      buff = "\n anem DECLARANT tete\n";
-     if(write(1, buff, strlen(buff)) == -1) perror();
-      for(short j = 0; j < NUM_COLUMNS; ++j){
-        *(matrix + act_row + (j * sizeof_parameter)) = stos('t',0x04); //(short)(('t' & 0x00FF) | (short)(0x03 << 8 )); // // @ini + FIL + COLact
-      }
-    }*/
+    short *matrix;
 
     matrix = alloc(); // = &ORIG matrix;
 
@@ -49,12 +33,9 @@ int __attribute__ ((__section__(".text.main")))
     buff = "\n ALLOC FET\n";
     if(write(1, buff, strlen(buff)) == -1) perror();
 
-    for (int i = 0; i < NUM_COLUMNS*NUM_ROWS*2; i += 2){
-      buff = "fem...\n";
-      if(write(1, buff, strlen(buff)) == -1) perror();
-      *(matrix + i) = 0x03;
-      *(matrix + i+1) = 0x61; //stos('t',0x04);
-       
+    for (int i = 0; i < NUM_COLUMNS*NUM_ROWS; ++i){
+      if (i == 0 || i == (NUM_COLUMNS*NUM_ROWS)-1) *(matrix + i) = stos('O',0x01);
+      else *(matrix + i) = stos('t',0x03);
     }
 
      buff = "\n MATRIU FETA TETE\n";
