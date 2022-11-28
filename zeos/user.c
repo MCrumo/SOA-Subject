@@ -64,18 +64,14 @@ int __attribute__ ((__section__(".text.main")))
 
     if (dealloc(matrix) == -1) perror();
 
+
   while(1) {
 
-    char *buffer;
-    char* c;
+    char *c;
 
-    if (get_key(c) == 1){
-      
-      buff = "\nHi ha algo a llegir\n";
-      if(write(1, buff, strlen(buff)) == -1) perror();
-
-      buffer = *c;
-      if(write(1, buffer, strlen(buffer)) == -1) perror();
+    if (get_key(c) == 0){
+     
+      if(write(1, c, sizeof(c)) == -1) perror();
 
     }
   }

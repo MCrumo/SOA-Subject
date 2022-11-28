@@ -117,7 +117,7 @@ int read_from_buffer(char* c)
 {
   if ((Head == Tail)&&(IsFull_Flag != 1)) return -1; //the buffer us empty
   else {
-    *c = circular_buff[Tail]; //AQUI DONA PG FAULT al accedir a *c
+    //*c = circular_buff[Tail]; //AQUI DONA PG FAULT al accedir a *c
     Tail = (Tail + 1)%BUFF_SIZE;
     IsFull_Flag = 0;
     return 0;

@@ -371,6 +371,6 @@ int sys_dump_screen(void *address)
 int sys_get_key(char* c)
 {
   int isSomethingToRead = read_from_buffer(c);
-  if (isSomethingToRead) return 0;
+  if (isSomethingToRead == 0) return 0;
   else return -1;
 }
