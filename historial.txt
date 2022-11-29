@@ -10,6 +10,7 @@ a sched.h declaracio de task_struc i task_union
 
 
 _______________________screen_dump_____________________________________________________
+- Verificar que la address que ens passen es valida!
 si volem declara un struct == pair<int,int> creem un .h o on ho fem -> ?
 hem fet #define al io.h i comentat el del io.c; es correcte -> SI
 quan ocupa un word i com es relaciona amb una pos de mem -> posMem=1B

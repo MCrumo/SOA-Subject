@@ -67,7 +67,7 @@ int __attribute__ ((__section__(".text.main")))
 
   while(1) {
 
-    char *c;
+    void *c;
 
     if (get_key(c) == 0){
      
