@@ -106,7 +106,8 @@ int IsFull_Flag = 0;
 
 void write_to_buffer(char c)
 {
-  if (IsFull_Flag == 0) { //the buff is not full
+  //the buff is not full
+  if (IsFull_Flag == 0) { 
     circular_buff[Head] = c;
     Head = (Head + 1)%BUFF_SIZE;
     if (Head == Tail) IsFull_Flag = 1;
@@ -115,9 +116,12 @@ void write_to_buffer(char c)
 
 int read_from_buffer(char* c)
 {
-  if ((Head == Tail)&&(IsFull_Flag != 1)) return -1; //the buffer us empty
+  //the buffer is empty
+  if ((Head == Tail)&&(IsFull_Flag != 1)){
+    return -1;
+  } 
   else {
-    //*c = circular_buff[Tail]; //AQUI DONA PG FAULT al accedir a *c
+    *c = circular_buff[Tail];
     Tail = (Tail + 1)%BUFF_SIZE;
     IsFull_Flag = 0;
     return 0;

@@ -29,10 +29,10 @@ ENTRY (sys_call_table)
 	.long sys_terminatethread	//24 terminatethread
 	.long sys_dump_screen		//25 dump_screen
 	.long sys_get_key			//26 get_key
-	.long sys_ni_syscall		//27
-	.long sys_ni_syscall		//28
-	.long sys_ni_syscall		//29
-	.long sys_ni_syscall		//30
+	.long sys_sem_init			//27 sem_init
+	.long sys_sem_wait			//28 sem_wait
+	.long sys_sem_signal		//29 sem_signal
+	.long sys_sem_destroy		//30 sem_destroy
 	.long sys_ni_syscall		//31
 	.long sys_ni_syscall		//32
 	.long sys_ni_syscall		//33

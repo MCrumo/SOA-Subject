@@ -1,3 +1,10 @@
+
+==== MAIL ============================================================================
+dump_screen -> 	Esta ben verificada l'adressa que passem?
+get_key 	->	Es correcte? i fer-li un alloc() a 'char *c'?
+threads 	-> 	Com continuar xd
+======================================================================================
+______________________________________________________________________________________
 _______________________threads________________________________________________________
 S'ha de fer init del TID al fork; gobl_TID = 1 es correcte -> ? 
 Parametres de createthread ben passats -> SI
@@ -7,23 +14,22 @@ NO hem de modificar el scheduler
 hem de canviar la programacio del scheduler perq sigui multi lvl i perq no faci set_cr3 entre threads -> ?
 cada vex que llamemos dump_screen tendremos que crear un thread? createthread(dump_screen(*screen))-> ?
 a sched.h declaracio de task_struc i task_union
-
-
+_______________________________________________________________________________________
 _______________________screen_dump_____________________________________________________
-- Verificar que la address que ens passen es valida!
 si volem declara un struct == pair<int,int> creem un .h o on ho fem -> ?
 hem fet #define al io.h i comentat el del io.c; es correcte -> SI
 quan ocupa un word i com es relaciona amb una pos de mem -> posMem=1B
 perque el make dona Warnings al interrupt.c -> Normal
 com saber quin color correspon cada 0xXX -> fent proves
 com passar el NUM_ROW/COLS al user.c -> no es pot
-
-
+_______________________________________________________________________________________
 _______________________keyboard________________________________________________________
 PAGE FAULT al accedir a *c al io.c
 com declarem i a on el buffer de get_chey ->
 keyboard_handler esta a entry.S i alla crida a keyboard_routine
 keyboard_routine esta a interrupt.c i crida a printc_xy que esta a io.c
+_______________________________________________________________________________________
+_______________________semaphores______________________________________________________
 
 
 ____________________alloc_14/11________________________________________________________

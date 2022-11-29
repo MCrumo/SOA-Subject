@@ -7,12 +7,10 @@ char buff[24];
 
 int pid;
 
-
 short stos(char ch, char color){  //screen to short
   short col = color << 8;
   return ch | col;
-} 
-
+}
 int isWall(int i){
   if ((i%NUM_COLUMNS==0&&i>NUM_ROWS)||(i>(NUM_COLUMNS*(NUM_ROWS-1)))) {
     return 1; //esquerra i a baix
@@ -40,7 +38,7 @@ int __attribute__ ((__section__(".text.main")))
      //provar d'escriure en la direccio de memoria etc
     
     char *buff;
-
+    char *c;
     short *matrix;
 
     matrix = alloc(); // = &ORIG matrix;
@@ -59,20 +57,18 @@ int __attribute__ ((__section__(".text.main")))
     buff = "\n MATRIU FETA TETE\n";
     if(write(1, buff, strlen(buff)) == -1) perror();
      
-    dump_screen(matrix);
+    if (dump_screen(matrix) == -1 ) perror();
 
 
     if (dealloc(matrix) == -1) perror();
 
+    c = alloc();
+    if((int)c == -1) perror();
 
   while(1) {
 
-    void *c;
-
     if (get_key(c) == 0){
-     
       if(write(1, c, sizeof(c)) == -1) perror();
-
     }
   }
 }
