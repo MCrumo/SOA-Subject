@@ -278,7 +278,7 @@ int sys_dealloc(void *address)
 {
     //comprovar que no sigui de kernel etc i que estigui associada a una fisica
     unsigned int lpage = (unsigned int)address >> 12;
-    if (lpage < NUM_PAG_KERNEL+NUM_PAG_CODE+NUM_PAG_DATA && lpage < TOTAL_PAGES) {
+    if ((lpage < NUM_PAG_KERNEL+NUM_PAG_CODE+NUM_PAG_DATA) || (lpage >= TOTAL_PAGES)) {
         return -EACCES;
     }
     
@@ -318,14 +318,14 @@ int sys_createthread(int (*function)(void *param), void *param)
   user_stack[1023] = (unsigned long)param;
   user_stack[1022] = (unsigned long)function;
   user_stack[1021] = NULL;
-//1023 ss; 1022 esp; 1021 palabestado; 1019 eip => on tenim el parametre; tocar esp i eip
+  //1023 ss; 1022 esp; 1021 palabestado; 1019 eip => on tenim el parametre; tocar esp i eip
   uchild->stack[KERNEL_STACK_SIZE-2] = &user_stack;  //esp 
   uchild->stack[KERNEL_STACK_SIZE-5] = function;      //eip
 
-/*cambiar el contesto hw de este thread  modificar cont hw para que canduo vuelva a usr la pila 
-que utilizaras es a que acabo de alocatar i la instr que haras el la 1a instr de la funcion
-me alicao un pag para la pila de usr empilar parametro i poner un 0 (= dir de retorno)
-unsigned long * 1023 es la ultima y donde hay que comenzar a empilar
+  /*cambiar el contesto hw de este thread  modificar cont hw para que canduo vuelva a usr la pila 
+  que utilizaras es a que acabo de alocatar i la instr que haras el la 1a instr de la funcion
+  me alicao un pag para la pila de usr empilar parametro i poner un 0 (= dir de retorno)
+  unsigned long * 1023 es la ultima y donde hay que comenzar a empilar
   *  QUINES DADES HEM DE COPIAR EXACTAMENT entre thread 1 i 2 ???
   *  com fer que EIP apunti a (*function) i SS a stak de |@ret|*func|*param|
   */
@@ -349,11 +349,19 @@ int sys_terminatethread()
 }
 
 int sys_dump_screen(void *address)
-{ //address corresponding to an 80x25 matrix
-  
-  /* PERQUE AIXO DONA PG FAULT
-  unsigned int fpage = get_frame(get_PT(current()), (unsigned int)address);
-  if (fpage == 0) return -EACCES;*/
+{ 
+  //address corresponding to an 80x25 matrix; is valid?
+  unsigned int lid = (unsigned int)address >> 12;
+
+  // Is a valid range of logPage id? 
+  if ((lid < NUM_PAG_KERNEL+NUM_PAG_CODE+NUM_PAG_DATA) || (lid >= TOTAL_PAGES)){
+    return -EACCES;
+  }
+  // Is this logPage assigned, so it can be liberated?
+  else{
+    unsigned int fpage = get_frame(get_PT(current()), lid);
+    if (fpage == 0) return -EACCES;
+  }
   
   short *aux = address;
   int k = 0;
@@ -374,3 +382,8 @@ int sys_get_key(char* c)
   if (isSomethingToRead == 0) return 0;
   else return -1;
 }
+
+int sys_sem_init(int n_sem, unsigned int value) {return 0;}
+int sys_sem_wait(int n_sem) {return 0;}
+int sys_sem_signal(int n_sem) {return 0;}
+int sys_sem_destroy(int n_sem) {return 0;}

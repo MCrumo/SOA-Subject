@@ -180,3 +180,62 @@ ENTRY(get_key)
 	js nok;					// if (eax < 0) -->
 	popl %ebp
 	ret
+
+/* int sem_init (int n_sem, unsigned int value) */
+ENTRY(sem_init)
+	pushl %ebp
+	movl %esp, %ebp			
+	pushl %ebx;  			// Save EBX, ESI and EDI if modified
+	pushl %ecx
+	movl $27, %eax 			//entrada 27
+	movl 0x8(%ebp), %ebx;	//int n_sem
+	movl 0xC(%ebp), %ecx;	//int value
+	call syscall_sysenter
+	popl %ecx
+	popl %ebx
+	test %eax, %eax
+	js nok					// if (eax < 0) -->
+	popl %ebp
+	ret
+
+/* int sem_wait (int n_sem) */
+ENTRY(sem_wait)
+	pushl %ebp
+	movl %esp, %ebp
+	pushl %ebx
+	movl 0x8(%ebp), %ebx;   //int n_sem
+	movl $28, %eax 			//entrada 28
+	call syscall_sysenter
+	popl %ebx
+	test %eax, %eax
+	js nok;					// if (eax < 0) -->
+	popl %ebp
+	ret
+
+/* int sem_signal (int n_sem) */
+ENTRY(sem_signal)
+	pushl %ebp
+	movl %esp, %ebp
+	pushl %ebx
+	movl 0x8(%ebp), %ebx;   //int n_sem
+	movl $29, %eax 			//entrada 29
+	call syscall_sysenter
+	popl %ebx
+	test %eax, %eax
+	js nok;					// if (eax < 0) -->
+	popl %ebp
+	ret
+
+/* int sem_destroy (int n_sem) */
+ENTRY(sem_destroy)
+	pushl %ebp
+	movl %esp, %ebp
+	pushl %ebx
+	movl 0x8(%ebp), %ebx;   //int n_sem
+	movl $30, %eax 			//entrada 30
+	call syscall_sysenter
+	popl %ebx
+	test %eax, %eax
+	js nok;					// if (eax < 0) -->
+	popl %ebp
+	ret
