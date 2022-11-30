@@ -1,7 +1,7 @@
 
 # SOA
-ENS HEM QUEDAT A Add sys_fork (compiling, not tested)
-https://github.com/hialvaro/ZeOS-SOA/commits?before=da2160715d88cd53a9dcb3d6fb754316b0f8a4eb+35
+Per veure el nostre historial de commits:
+- https://github.com/MCrumo/SOA/commits/main/zeos
 
 ## Comentaris del codi
 
