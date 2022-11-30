@@ -5,6 +5,10 @@ get_key 	->
 threads 	->  tema wrapper ha de retornar algun valor (el declarat a libc.c)
 				el wrapper tambe ha d'invocar la funcio que executara el thread?
 terminate()	->	esta ven buscada l'addresa de struck[KERNEL_SIZE-2]
+	
+	movl 0x8(%ebp), %ecx; -- o -->	movl 0xC(%ebp), %ecx;
+	movl 0xC(%ebp), %edx; -- o -->	movl 0x10(%ebp), %edx;		 	
+		
 ======================================================================================
 ______________________________________________________________________________________
 _______________________threads________________________________________________________
@@ -33,7 +37,7 @@ keyboard_routine esta a interrupt.c i crida a printc_xy que esta a io.c
 _______________________________________________________________________________________
 _______________________semaphores______________________________________________________
 
-
+_______________________________________________________________________________________
 ____________________alloc_14/11________________________________________________________
 Començem amb la implementació de alloc()
     
@@ -42,7 +46,7 @@ Afegim a sys_call_table.S, a l'entrada 21 la crida a sistema sys_alloc()
 Afegim a libc.h la funció que declarem a alloc()
 Afegim a sys.c la funció sys_alloc()
 
-    
+
 ==========================================================================================================
 ========================================= DEBUGAR BOCHS ==================================================
 ==========================================================================================================

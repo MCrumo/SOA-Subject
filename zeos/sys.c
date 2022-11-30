@@ -300,7 +300,7 @@ int sys_dealloc(void *address)
   return dealloc_k(lpage);  
 }
 
-int sys_createthread(int (*wrapper_func), int (*function)(void *param), void *param)
+int sys_createthread(int (*twrap), int (*function)(void *param), void *param)
 {
   struct list_head *lhcurrent = NULL;
   union task_union *uchild;
@@ -324,7 +324,7 @@ int sys_createthread(int (*wrapper_func), int (*function)(void *param), void *pa
   user_stack[1023] = (unsigned long)param;
   //1023 ss; 1022 esp; 1021 palabestado; 1020 cs; 1019 eip => on tenim el parametre; tocar esp i eip
   uchild->stack[KERNEL_STACK_SIZE-2] = (unsigned long)&user_stack;      //esp 
-  uchild->stack[KERNEL_STACK_SIZE-5] = (unsigned long)wrapper_func;     //eip LA DEL WRAPPER
+  uchild->stack[KERNEL_STACK_SIZE-5] = (unsigned long)twrap;     //eip LA DEL WRAPPER
 
   /*cambiar el contesto hw de este thread  modificar cont hw para que canduo vuelva a usr la pila 
   que utilizaras es a que acabo de alocatar i la instr que haras el la 1a instr de la funcion

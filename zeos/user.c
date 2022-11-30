@@ -71,6 +71,8 @@ int __attribute__ ((__section__(".text.main")))
       }
       
       if (createthread(dump_screen, matrix) == -1) perror();
+      
+      if (dealloc(matrix) == -1) perror();
     }
   }
 }
