@@ -1,8 +1,10 @@
 
 ==== MAIL ============================================================================
-dump_screen -> 	Esta ben verificada l'adressa que passem?
-get_key 	->	Es correcte? i fer-li un alloc() a 'char *c'?
-threads 	-> 	Com continuar xd
+dump_screen -> 	
+get_key 	->	
+threads 	->  tema wrapper ha de retornar algun valor (el declarat a libc.c)
+				el wrapper tambe ha d'invocar la funcio que executara el thread?
+terminate()	->	esta ven buscada l'addresa de struck[KERNEL_SIZE-2]
 ======================================================================================
 ______________________________________________________________________________________
 _______________________threads________________________________________________________
@@ -58,22 +60,22 @@ DEBUGAR baix nivell bochs:
 thread principal de videojuego, va hacer un spam de otro thread
 
 thread1		
- |							    thread2
- |								|
- | -> 	alloc() devolver la 					| -> dump_screen
- |		primera pag log 4KB 				|	interpreta matrix de 25fx80c
- |		libres, para dibujar la 			|	donde cada posicion hay dos B
- |		pantalla en un buffer que			|	1r->COLOR 2n->ASCII
- |		luego el 2o thread va a 			|
- |		dibujar					|
- |								|
- |	get_key(char *c) kbd_init buffer			|
- |			que guarda la teclas			|
- |			que se van pulsando			|
+ |							   							thread2
+ |														|
+ | -> 	alloc() devolver la 							| -> dump_screen
+ |		primera pag log 4KB 							|	interpreta matrix de 25fx80c
+ |		libres, para dibujar la 						|	donde cada posicion hay dos B
+ |		pantalla en un buffer que						|	1r->COLOR 2n->ASCII
+ |		luego el 2o thread va a 						|
+ |		dibujar											|
+ |														|
+ |	get_key(char *c) kbd_init buffer					|
+ |			que guarda la teclas						|
+ |			que se van pulsando							|
  |	get_key va a retornar la 1a tecla del buffer		|
- |								|
+ |														|
  |	una vez a dibujado el thread1 le va a passar		|
- |	al segundo thread					|
+ |	al segundo thread									|
  |
  
  la lista se va a tener que implementar en exclusión mutua -> habra que implementar semaforos

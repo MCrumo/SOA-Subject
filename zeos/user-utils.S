@@ -126,7 +126,7 @@ ENTRY(dealloc)
 	ret
 
 /* int createthread(int (*function)(void *param), void *param) */
-ENTRY(createthread)			// PARAMETRES VEN PASSATS??¿¿¿¿
+ENTRY(createthread)			// PARAMETRES VEN PASSATS??
 	pushl %ebp
 	movl %esp, %ebp			//HCER SAVE DEL ECX
 	pushl %ebx;  			// Save EBX, ESI and EDI if modified

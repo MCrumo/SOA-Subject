@@ -60,6 +60,7 @@ short stos(char ch, char color)
 
 int twrap()
 {
-  if (terminatethread() == 0) return 0;
-  else return -1;
+  int error = terminatethread();
+  if (error < 0) return error;
+  else return 0;
 }

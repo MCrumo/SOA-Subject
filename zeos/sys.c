@@ -349,11 +349,12 @@ int sys_createthread(int (*wrapper_func), int (*function)(void *param), void *pa
 
 int sys_terminatethread()
 {
-  /*HEM DE LLIVERAR EL alloc() que fem al createthread
-  unsigned int* user_stack = current()->stack[KERNEL_STACK_SIZE-2];
+  //HEM DE LLIVERAR EL alloc() que fem al createthread
+  unsigned long* task_union = (unsigned long*)current();
+  unsigned long user_stack = task_union[KERNEL_STACK_SIZE-2]; //adreca a la pila d'usuari
   unsigned int lpage = (unsigned int)user_stack >> 12;
   int isError = dealloc_k(lpage);
-  if (isError < 0) return isError;*/
+  if (isError < 0) return isError;
   
   /* Free task_struct */
   list_add_tail(&(current()->list), &freequeue);

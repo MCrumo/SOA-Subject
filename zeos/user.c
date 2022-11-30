@@ -63,9 +63,14 @@ int __attribute__ ((__section__(".text.main")))
 
     if (get_key(&c) == 0){
       if(write(1, &c, sizeof(&c)) == -1) perror();
+
+      matrix = alloc();
+      if((int)matrix == -1) perror();
+      for (int i = 0; i < NUM_COLUMNS*NUM_ROWS; ++i){
+        *(matrix + i) = stos('.',0x03);
+      }
       
-      int i = 45;
-      //if (createthread(isWall(&i), &i) == -1) perror();
+      if (createthread(dump_screen, matrix) == -1) perror();
     }
   }
 }
