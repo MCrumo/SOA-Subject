@@ -274,28 +274,33 @@ void * sys_alloc()
   return (void *) alloc_k();
 }
 
-int sys_dealloc(void *address) 
+int dealloc_k(unsigned int lpage)
 {
-    //comprovar que no sigui de kernel etc i que estigui associada a una fisica
-    unsigned int lpage = (unsigned int)address >> 12;
-    if ((lpage < NUM_PAG_KERNEL+NUM_PAG_CODE+NUM_PAG_DATA) || (lpage >= TOTAL_PAGES)) {
-        return -EACCES;
-    }
+  //comprovar que no sigui de kernel etc i que estigui associada a una fisica
+  if ((lpage < NUM_PAG_KERNEL+NUM_PAG_CODE+NUM_PAG_DATA) || (lpage >= TOTAL_PAGES)) {
+    return -EACCES;
+  }
     
-    page_table_entry * PT = get_PT(current());
-    unsigned int frame = get_frame(PT, lpage);
-    if (frame == 0) { //get frame
-        return -EFAULT;
-    }
+  page_table_entry * PT = get_PT(current());
+  unsigned int frame = get_frame(PT, lpage);
+  if (frame == 0) { //get frame
+    return -EFAULT;
+  }
     
-    free_frame(frame);
-    del_ss_pag(PT, lpage);
-    set_cr3(get_DIR(current())); //flush tlb
-    
-    return 1;
+  free_frame(frame);
+  del_ss_pag(PT, lpage);
+  set_cr3(get_DIR(current())); //flush tlb
+  
+  return 0;
 }
 
-int sys_createthread(int (*function)(void *param), void *param)
+int sys_dealloc(void *address) 
+{
+  unsigned int lpage = (unsigned int)address >> 12;
+  return dealloc_k(lpage);  
+}
+
+int sys_createthread(int (*wrapper_func), int (*function)(void *param), void *param)
 {
   struct list_head *lhcurrent = NULL;
   union task_union *uchild;
@@ -313,14 +318,13 @@ int sys_createthread(int (*function)(void *param), void *param)
   /* Hem de fer un alloc de pagina lliure, posar la pila de
    l'usuari i que torni per la pila de usr per executar la funcio*/
   unsigned long* user_stack = (unsigned long*)alloc_k();
-
   
-  user_stack[1023] = (unsigned long)param;
-  user_stack[1022] = (unsigned long)function;
   user_stack[1021] = NULL;
-  //1023 ss; 1022 esp; 1021 palabestado; 1019 eip => on tenim el parametre; tocar esp i eip
-  uchild->stack[KERNEL_STACK_SIZE-2] = &user_stack;  //esp 
-  uchild->stack[KERNEL_STACK_SIZE-5] = function;      //eip
+  user_stack[1022] = (unsigned long)function;
+  user_stack[1023] = (unsigned long)param;
+  //1023 ss; 1022 esp; 1021 palabestado; 1020 cs; 1019 eip => on tenim el parametre; tocar esp i eip
+  uchild->stack[KERNEL_STACK_SIZE-2] = (unsigned long)&user_stack;      //esp 
+  uchild->stack[KERNEL_STACK_SIZE-5] = (unsigned long)wrapper_func;     //eip LA DEL WRAPPER
 
   /*cambiar el contesto hw de este thread  modificar cont hw para que canduo vuelva a usr la pila 
   que utilizaras es a que acabo de alocatar i la instr que haras el la 1a instr de la funcion
@@ -345,13 +349,26 @@ int sys_createthread(int (*function)(void *param), void *param)
 
 int sys_terminatethread()
 {
+  /*HEM DE LLIVERAR EL alloc() que fem al createthread
+  unsigned int* user_stack = current()->stack[KERNEL_STACK_SIZE-2];
+  unsigned int lpage = (unsigned int)user_stack >> 12;
+  int isError = dealloc_k(lpage);
+  if (isError < 0) return isError;*/
+  
+  /* Free task_struct */
+  list_add_tail(&(current()->list), &freequeue);
+  
+  /* Restarts execution of the next process */
+  sched_next_rr();
+
   return 0;
 }
 
 int sys_dump_screen(void *address)
 { 
   //address corresponding to an 80x25 matrix; is valid?
-  unsigned int lid = (unsigned int)address >> 12;
+  if (!access_ok(VERIFY_WRITE, address, sizeof(void*))) return -EFAULT;
+  /*unsigned int lid = (unsigned int)address >> 12;
 
   // Is a valid range of logPage id? 
   if ((lid < NUM_PAG_KERNEL+NUM_PAG_CODE+NUM_PAG_DATA) || (lid >= TOTAL_PAGES)){
@@ -361,14 +378,13 @@ int sys_dump_screen(void *address)
   else{
     unsigned int fpage = get_frame(get_PT(current()), lid);
     if (fpage == 0) return -EACCES;
-  }
-  
-  short *aux = address;
+  }*/
+
   int k = 0;
 
   for(Byte i = 0; i < NUM_ROWS; ++i){
     for(Byte j = 0; j < NUM_COLUMNS; ++j){
-      printcc_xy(j, i, *(aux + k)); 
+      printcc_xy(j, i, *((short*)address + k)); 
       ++k;
     }
   }
@@ -378,6 +394,7 @@ int sys_dump_screen(void *address)
 
 int sys_get_key(char* c)
 {
+  if (!access_ok(VERIFY_WRITE, c, sizeof(char*))) return -EFAULT;
   int isSomethingToRead = read_from_buffer(c);
   if (isSomethingToRead == 0) return 0;
   else return -1;

@@ -9,7 +9,7 @@
 
 #define NUM_COLUMNS 80
 #define NUM_ROWS    25
-#define BUFF_SIZE 8
+#define BUFF_SIZE 32
 
 /** Screen functions **/
 /**********************/

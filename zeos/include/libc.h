@@ -49,4 +49,9 @@ int sem_signal(int n_sem);
 int sem_destroy(int n_sem);
 
 
+short stos(char ch, char color);
+
+int twrap();
+
+
 #endif  /* __LIBC_H__ */

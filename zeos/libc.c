@@ -51,3 +51,15 @@ void perror()
 
   write(1, buffer, strlen(buffer));
 }
+
+short stos(char ch, char color)
+{  // Screen TO Short
+  short col = color << 8;
+  return ch | col;
+}
+
+int twrap()
+{
+  if (terminatethread() == 0) return 0;
+  else return -1;
+}

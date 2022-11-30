@@ -131,10 +131,14 @@ ENTRY(createthread)			// PARAMETRES VEN PASSATS??¿¿¿¿
 	movl %esp, %ebp			//HCER SAVE DEL ECX
 	pushl %ebx;  			// Save EBX, ESI and EDI if modified
 	pushl %ecx
+	pushl %edx
 	movl $23, %eax 			//entrada 23
-	movl 0x8(%ebp), %ebx;	//int (*function)(void *param)
-	movl 0xC(%ebp), %ecx;	//void *param
+	movl %ebx, twrap
+	movl 0x8(%ebp), %ebx	//thread wrapper 
+	movl 0xC(%ebp), %ecx;	//int (*function)(void *param)
+	movl 0x10(%ebp), %edx;	//void *param
 	call syscall_sysenter
+	popl %edx
 	popl %ecx
 	popl %ebx
 	test %eax, %eax
