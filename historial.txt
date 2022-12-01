@@ -37,7 +37,10 @@ keyboard_handler esta a entry.S i alla crida a keyboard_routine
 keyboard_routine esta a interrupt.c i crida a printc_xy que esta a io.c
 _______________________________________________________________________________________
 _______________________semaphores______________________________________________________
-
+apunts: https://github.com/hialvaro/ZeOS-SOA/blob/916caae118a6a33a6e794966ceda33b02049a84e/Teoria/SOA_Segundo_Parcial.md
+sem1: 	https://github.com/acolominas/SOA/search?q=sem_wait
+sem2:	https://github.com/4rnox/SOA-FIB/search?q=sem_wait
+sem3:	https://github.com/miquel-gotanegra/SOA-FIB/search?q=sem_wait
 _______________________________________________________________________________________
 ____________________alloc_14/11________________________________________________________
 Començem amb la implementació de alloc()
