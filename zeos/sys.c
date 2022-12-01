@@ -403,7 +403,8 @@ int sys_get_key(char* c)
   else return -1;
 }
 
-//int needGlobalInit = 1;
+
+/* _____SEMAPHORES_____ */
 
 typedef struct {
   int isInit;
@@ -413,14 +414,6 @@ typedef struct {
 } semaphore;
 
 semaphore list_sem[MAX_SEM];
-
-/*void init_sem_list()
-{
-  for (int i = 0; i < MAX_SEM; ++i){
-    list_sem[i].isInit = 0;
-  }
-  needGlobalInit = 0;
-}*/
 
 int valid_sem(int n_sem, int isNew) 
 {
@@ -480,7 +473,6 @@ int sys_sem_destroy(int n_sem) {
     list_sem[n_sem].destroyed = 1;
     list_add_tail(lib, &readyqueue);
   }
-  
   list_sem[n_sem].isInit = 0;
   
   return 0;
