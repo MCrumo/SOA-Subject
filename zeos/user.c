@@ -70,12 +70,12 @@ int __attribute__ ((__section__(".text.main")))
         *(matrix + i) = stos('.',0x03);
       }
 
-      if (sem_init(0, 0) == -1) perror();
+      //if (sem_init(0, 0) == -1) perror();
 
-      if (sem_wait(0) == -1) perror();
-      if (sem_signal(0) == -1) perror();
+      //if (sem_wait(0) == -1) perror();
+      //if (sem_signal(0) == -1) perror();
 
-      if (sem_destroy(0) == -1) perror();
+      //if (sem_destroy(0) == -1) perror();
 
       if (createthread(dump_screen, matrix) == -1) perror();
       

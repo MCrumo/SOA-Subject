@@ -403,29 +403,30 @@ int sys_get_key(char* c)
   else return -1;
 }
 
-int needGlobalInit = 1;
+//int needGlobalInit = 1;
 
 typedef struct {
   int isInit;
   int counter;
+  int destroyed;
   struct list_head blocked;
 } semaphore;
 
 semaphore list_sem[MAX_SEM];
 
-void init_sem_list()
+/*void init_sem_list()
 {
   for (int i = 0; i < MAX_SEM; ++i){
     list_sem[i].isInit = 0;
   }
   needGlobalInit = 0;
-}
+}*/
 
 int valid_sem(int n_sem, int isNew) 
 {
   if ((n_sem >= MAX_SEM) || (n_sem < 0)) return -1;
   if (isNew){
-    if (list_sem[n_sem].isInit != 0) return -1; //is already initialized
+    if (list_sem[n_sem].isInit != NULL) return -1; //is already initialized
   }
   else { //isNotNew
     if (list_sem[n_sem].isInit == 0) return -1; //is not initialized
@@ -435,41 +436,53 @@ int valid_sem(int n_sem, int isNew)
 
 int sys_sem_init(int n_sem, unsigned int value) 
 {
-  if (needGlobalInit) init_sem_list();
+  //if (needGlobalInit) init_sem_list();
   if (valid_sem(n_sem, 1) != 0) return -1;
+  list_sem[n_sem].destroyed = 0;
   list_sem[n_sem].counter = value;
   INIT_LIST_HEAD(&list_sem[n_sem].blocked);
+  list_sem[n_sem].isInit = 1;
   return 0;
 }
+
 int sys_sem_wait(int n_sem) {
   if (valid_sem(n_sem, 0) != 0) return -1;
   list_sem[n_sem].counter--;
-  if (list_sem[n_sem].counter < 0){
-    list_add(&current()->list, &list_sem[n_sem].blocked); //VICEVERSA?
+  if (list_sem[n_sem].counter < 0){ //MENOR O IGUAL?
+    list_add_tail(&(current()->list), &list_sem[n_sem].blocked);
     sched_next_rr();
   }
+  if (list_sem[n_sem].destroyed == 1) return -1;
   return 0;
 }
+
 int sys_sem_signal(int n_sem) {
   if (valid_sem(n_sem, 0) != 0) return -1;
   list_sem[n_sem].counter++;
   if (list_sem[n_sem].counter <= 0){
     //struct task_struct* lib = ; 
     //list_add(lib);
-    list_add(list_first(&list_sem[n_sem].blocked), &readyqueue); //VICEVERSA?
+    struct list_head *lib = list_first(&list_sem[n_sem].blocked);
+    list_del(lib);
+    list_add_tail(lib, &readyqueue);
   }
+  
   return 0;
 }
+
 int sys_sem_destroy(int n_sem) {
   if (valid_sem(n_sem, 0) != 0) return -1;
 
   //unblock if there are blocked processes
   while (!list_empty(&list_sem[n_sem].blocked)){
-    list_add(list_first(&list_sem[n_sem].blocked), &readyqueue); //VICEVERSA?
-    list_del(list_first(&list_sem[n_sem].blocked));
+    struct list_head *lib = list_first(&list_sem[n_sem].blocked);
+    list_del(lib);
+    list_sem[n_sem].destroyed = 1;
+    list_add_tail(lib, &readyqueue);
   }
-
+  
   list_sem[n_sem].isInit = 0;
+  
   return 0;
 }
 
