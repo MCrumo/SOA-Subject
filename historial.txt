@@ -2,6 +2,7 @@
 ==== MAIL ============================================================================
 dump_screen -> 	
 get_key 	->	
+semaphores 	->	com fer al sem_destroy que el seu sem_wait retorni -1
 threads 	->  tema wrapper ha de retornar algun valor (el declarat a libc.c)
 				el wrapper tambe ha d'invocar la funcio que executara el thread?
 terminate()	->	esta ven buscada l'addresa de struck[KERNEL_SIZE-2]
