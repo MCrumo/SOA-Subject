@@ -453,8 +453,6 @@ int sys_sem_signal(int n_sem) {
   if (valid_sem(n_sem, 0) != 0) return -1;
   list_sem[n_sem].counter++;
   if (list_sem[n_sem].counter <= 0){
-    //struct task_struct* lib = ; 
-    //list_add(lib);
     struct list_head *lib = list_first(&list_sem[n_sem].blocked);
     list_del(lib);
     list_add_tail(lib, &readyqueue);

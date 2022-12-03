@@ -51,7 +51,7 @@ int sem_destroy(int n_sem);
 
 short stos(char ch, char color);
 
-int twrap();
+void twrap();
 
 
 #endif  /* __LIBC_H__ */

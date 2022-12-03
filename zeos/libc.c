@@ -58,9 +58,8 @@ short stos(char ch, char color)
   return ch | col;
 }
 
-int twrap()
+void twrap()
 {
-  int error = terminatethread();
-  if (error < 0) return error;
-  else return 0;
+  // EXECUTAR LA FUNCIO D'USUARI
+  terminatethread();
 }
