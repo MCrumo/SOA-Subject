@@ -133,12 +133,10 @@ ENTRY(createthread)			// PARAMETRES VEN PASSATS??
 	pushl %ecx
 	pushl %edx
 	movl $23, %eax 			//entrada 23
+	
 	movl twrap, %ebx		//thread wrapper
-
 	movl 0x8(%ebp), %ecx;	//int (*function)(void *param)
 	movl 0xC(%ebp), %edx;	//void *param
-/*	movl 0xC(%ebp), %ecx;	
-	movl 0x10(%ebp), %edx;	*/
 
 	call syscall_sysenter
 	popl %edx

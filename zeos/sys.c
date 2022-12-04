@@ -429,7 +429,6 @@ int valid_sem(int n_sem, int isNew)
 
 int sys_sem_init(int n_sem, unsigned int value) 
 {
-  //if (needGlobalInit) init_sem_list();
   if (valid_sem(n_sem, 1) != 0) return -1;
   list_sem[n_sem].destroyed = 0;
   list_sem[n_sem].counter = value;
@@ -438,7 +437,8 @@ int sys_sem_init(int n_sem, unsigned int value)
   return 0;
 }
 
-int sys_sem_wait(int n_sem) {
+int sys_sem_wait(int n_sem) 
+{
   if (valid_sem(n_sem, 0) != 0) return -1;
   list_sem[n_sem].counter--;
   if (list_sem[n_sem].counter < 0){ //MENOR O IGUAL?
@@ -449,7 +449,8 @@ int sys_sem_wait(int n_sem) {
   return 0;
 }
 
-int sys_sem_signal(int n_sem) {
+int sys_sem_signal(int n_sem) 
+{
   if (valid_sem(n_sem, 0) != 0) return -1;
   list_sem[n_sem].counter++;
   if (list_sem[n_sem].counter <= 0){
@@ -457,13 +458,12 @@ int sys_sem_signal(int n_sem) {
     list_del(lib);
     list_add_tail(lib, &readyqueue);
   }
-  
   return 0;
 }
 
-int sys_sem_destroy(int n_sem) {
+int sys_sem_destroy(int n_sem) 
+{
   if (valid_sem(n_sem, 0) != 0) return -1;
-
   //unblock if there are blocked processes
   while (!list_empty(&list_sem[n_sem].blocked)){
     struct list_head *lib = list_first(&list_sem[n_sem].blocked);

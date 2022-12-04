@@ -1,38 +1,22 @@
 
 ==== MAIL ============================================================================
-dump_screen -> 	
-get_key 	->	
-semaphores 	->	com fer al sem_destroy que el seu sem_wait retorni -1
-threads 	->  tema wrapper ha de retornar algun valor (el declarat a libc.c)
-				el wrapper tambe ha d'invocar la funcio que executara el thread?
-terminate()	->	esta ven buscada l'addresa de struck[KERNEL_SIZE-2]
-	
-	movl 0x8(%ebp), %ecx; -- o -->	movl 0xC(%ebp), %ecx;
-	movl 0xC(%ebp), %edx; -- o -->	movl 0x10(%ebp), %edx;		 	
-		
+semaphores 	->	validar-los 
+threads 	->  el wrapper tambe ha d'invocar la funcio que executara el thread; COM? ->
+terminate()	->	validar-la
 ======================================================================================
 ______________________________________________________________________________________
 _______________________threads________________________________________________________
 S'ha de fer init del TID al fork; gobl_TID = 1 es correcte -> ? 
 Parametres de createthread ben passats -> SI
 que ha de retornar int createthread() i terminate -> o 0 o -1
-mes dubtes al sys.c
-NO hem de modificar el scheduler
-hem de canviar la programacio del scheduler perq sigui multi lvl i perq no faci set_cr3 entre threads -> ?
 cada vex que llamemos dump_screen tendremos que crear un thread? createthread(dump_screen(*screen))-> ?
-a sched.h declaracio de task_struc i task_union
 _______________________________________________________________________________________
 _______________________screen_dump_____________________________________________________
-si volem declara un struct == pair<int,int> creem un .h o on ho fem -> ?
-hem fet #define al io.h i comentat el del io.c; es correcte -> SI
 quan ocupa un word i com es relaciona amb una pos de mem -> posMem=1B
-perque el make dona Warnings al interrupt.c -> Normal
 com saber quin color correspon cada 0xXX -> fent proves
 com passar el NUM_ROW/COLS al user.c -> no es pot
 _______________________________________________________________________________________
 _______________________keyboard________________________________________________________
-PAGE FAULT al accedir a *c al io.c
-com declarem i a on el buffer de get_chey ->
 keyboard_handler esta a entry.S i alla crida a keyboard_routine
 keyboard_routine esta a interrupt.c i crida a printc_xy que esta a io.c
 _______________________________________________________________________________________
@@ -43,12 +27,11 @@ sem2:	https://github.com/4rnox/SOA-FIB/search?q=sem_wait
 sem3:	https://github.com/miquel-gotanegra/SOA-FIB/search?q=sem_wait
 _______________________________________________________________________________________
 ____________________alloc_14/11________________________________________________________
-Començem amb la implementació de alloc()
-    
+Comencem amb la implementacio de alloc()
 Afegir a user-utils.S el wrapper ENTRY(alloc), salvat context i fa la call a sys_alloc().
 Afegim a sys_call_table.S, a l'entrada 21 la crida a sistema sys_alloc()
-Afegim a libc.h la funció que declarem a alloc()
-Afegim a sys.c la funció sys_alloc()
+Afegim a libc.h la funcio que declarem a alloc()
+Afegim a sys.c la funcio sys_alloc()
 
 
 ==========================================================================================================
@@ -86,7 +69,7 @@ thread1
  |	al segundo thread									|
  |
  
- la lista se va a tener que implementar en exclusión mutua -> habra que implementar semaforos
+ la lista se va a tener que implementar en exclusion mutua -> habra que implementar semaforos
  
 ==========================================================================================================
 ==========================================================================================================
