@@ -60,7 +60,6 @@ int __attribute__ ((__section__(".text.main")))
 
 
   while(1) {
-
     if (get_key(&c) == 0){
       if(write(1, &c, sizeof(&c)) == -1) perror();
 
@@ -68,14 +67,19 @@ int __attribute__ ((__section__(".text.main")))
       if((int)matrix == -1) perror();
       for (int i = 0; i < NUM_COLUMNS*NUM_ROWS; ++i){
         *(matrix + i) = stos('.',0x03);
-      }
+      } //80*i + x
+      /*for (int i = 0; i < NUM_ROWS; ++i) {
+        for (int j = 0; j < NUM_COLUMNS; ++j) {
+          matrix[i][j] = stos('.',0x03);
+        }
+      }*/
 
-      if (sem_init(0, 0) == -1) perror();
+      /*if (sem_init(0, 0) == -1) perror();
 
       //if (sem_wait(0) == -1) perror();
       //if (sem_signal(0) == -1) perror();
 
-      if (sem_destroy(0) == -1) perror();
+      if (sem_destroy(0) == -1) perror();*/
 
       if (createthread(dump_screen, matrix) == -1) perror();
       

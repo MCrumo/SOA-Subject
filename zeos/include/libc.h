@@ -32,7 +32,7 @@ void *alloc();
 
 int dealloc(void *address);
 
-int createthread(int (*function)(void *param), void *param);
+int createthread(void (*function)(void *param), void *param);
 
 int terminatethread();
 
@@ -51,7 +51,6 @@ int sem_destroy(int n_sem);
 
 short stos(char ch, char color);
 
-void twrap();
-
+void twrap(void (*function)(void *param), void *param);
 
 #endif  /* __LIBC_H__ */

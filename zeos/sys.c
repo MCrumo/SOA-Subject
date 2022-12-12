@@ -324,8 +324,9 @@ int sys_createthread(int (*twrap), int (*function)(void *param), void *param)
   user_stack[1021] = NULL;
   user_stack[1022] = (unsigned long)function;
   user_stack[1023] = (unsigned long)param;
-  //1023 ss; 1022 esp; 1021 palabestado; 1020 cs; 1019 eip => on tenim el parametre; tocar esp i eip
-  uchild->stack[KERNEL_STACK_SIZE-2] = (unsigned long)&user_stack;      //esp 
+  //1023 ss; 1022 esp; 1021 palab de estado; 1020 cs; 1019 eip => on tenim el parametre; tocar esp i eip
+  //uchild->stack[KERNEL_STACK_SIZE-2] = (unsigned long)&user_stack;      //esp Potser li hem de passar directament l'adreça user_stack[1021]
+  uchild->stack[KERNEL_STACK_SIZE-2] = (unsigned long)&user_stack[1021];
   uchild->stack[KERNEL_STACK_SIZE-5] = (unsigned long)twrap;     //eip LA DEL WRAPPER
 
   /*cambiar el contesto hw de este thread  modificar cont hw para que canduo vuelva a usr la pila 
@@ -351,7 +352,7 @@ int sys_createthread(int (*twrap), int (*function)(void *param), void *param)
 
 int sys_terminatethread()
 {
-  //HEM DE LLIVERAR EL alloc() que fem al createthread
+  //HEM D'ALLIVERAR EL alloc() que fem al createthread
   unsigned long* task_union = (unsigned long*)current();
   unsigned long user_stack = task_union[KERNEL_STACK_SIZE-2]; //adreca a la pila d'usuari
   unsigned int lpage = (unsigned int)user_stack >> 12;
@@ -410,7 +411,7 @@ typedef struct {
   int isInit;
   int counter;
   int destroyed;
-  struct list_head blocked;
+  struct list_head blocked; //sacar del ready, se encola en semaforo i hace un sched next
 } semaphore;
 
 semaphore list_sem[MAX_SEM];
@@ -441,7 +442,7 @@ int sys_sem_wait(int n_sem)
 {
   if (valid_sem(n_sem, 0) != 0) return -1;
   list_sem[n_sem].counter--;
-  if (list_sem[n_sem].counter < 0){ //MENOR O IGUAL?
+  if (list_sem[n_sem].counter < 0){
     list_add_tail(&(current()->list), &list_sem[n_sem].blocked);
     sched_next_rr();
   }
@@ -461,7 +462,7 @@ int sys_sem_signal(int n_sem)
   return 0;
 }
 
-int sys_sem_destroy(int n_sem) 
+int sys_sem_destroy(int n_sem) //todos los sem destroy a 1 , lo tenemos el en task struct
 {
   if (valid_sem(n_sem, 0) != 0) return -1;
   //unblock if there are blocked processes

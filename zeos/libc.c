@@ -58,8 +58,14 @@ short stos(char ch, char color)
   return ch | col;
 }
 
-void twrap()
+void twrap(void (*function)(void *param), void *param)
 {
   // EXECUTAR LA FUNCIO D'USUARI
+  /*char *buff;
+  buff = "\n DINS DE TWRAP\n";
+  if(write(1, buff, strlen(buff)) == -1) perror();*/
+    
+    
+  function(param);
   terminatethread();
 }
