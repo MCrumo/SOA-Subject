@@ -25,6 +25,10 @@ int isLateral(int i){
   else return 0;
 }
 
+void func_thread2(void *address){
+  dump_screen(address);
+}
+
 int __attribute__ ((__section__(".text.main")))
   main(void)
 {
@@ -81,7 +85,7 @@ int __attribute__ ((__section__(".text.main")))
 
       if (sem_destroy(0) == -1) perror();*/
 
-      if (createthread(dump_screen, matrix) == -1) perror();
+      if (createthread(func_thread2, matrix) == -1) perror();
       
       if (dealloc(matrix) == -1) perror();
     }

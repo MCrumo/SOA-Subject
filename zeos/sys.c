@@ -373,7 +373,6 @@ int sys_dump_screen(void *address)
   //address corresponding to an 80x25 matrix; is valid?
   if (!access_ok(VERIFY_WRITE, address, sizeof(void*))) return -EFAULT;
   /*unsigned int lid = (unsigned int)address >> 12;
-
   // Is a valid range of logPage id? 
   if ((lid < NUM_PAG_KERNEL+NUM_PAG_CODE+NUM_PAG_DATA) || (lid >= TOTAL_PAGES)){
     return -EACCES;
@@ -410,7 +409,7 @@ int sys_get_key(char* c)
 typedef struct {
   int isInit;
   int counter;
-  int destroyed;
+  //int destroyed;
   struct list_head blocked; //sacar del ready, se encola en semaforo i hace un sched next
 } semaphore;
 
@@ -431,7 +430,8 @@ int valid_sem(int n_sem, int isNew)
 int sys_sem_init(int n_sem, unsigned int value) 
 {
   if (valid_sem(n_sem, 1) != 0) return -1;
-  list_sem[n_sem].destroyed = 0;
+  //list_sem[n_sem].destroyed = 0;
+  current()->destroyed = 0; 
   list_sem[n_sem].counter = value;
   INIT_LIST_HEAD(&list_sem[n_sem].blocked);
   list_sem[n_sem].isInit = 1;
@@ -446,7 +446,8 @@ int sys_sem_wait(int n_sem)
     list_add_tail(&(current()->list), &list_sem[n_sem].blocked);
     sched_next_rr();
   }
-  if (list_sem[n_sem].destroyed == 1) return -1;
+  //if (list_sem[n_sem].destroyed == 1) return -1;
+  if (current()->destroyed == 1) return -1;
   return 0;
 }
 
@@ -469,7 +470,8 @@ int sys_sem_destroy(int n_sem) //todos los sem destroy a 1 , lo tenemos el en ta
   while (!list_empty(&list_sem[n_sem].blocked)){
     struct list_head *lib = list_first(&list_sem[n_sem].blocked);
     list_del(lib);
-    list_sem[n_sem].destroyed = 1;
+    //list_sem[n_sem].destroyed = 1;
+    current()->destroyed = 1;
     list_add_tail(lib, &readyqueue);
   }
   list_sem[n_sem].isInit = 0;
