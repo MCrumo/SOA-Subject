@@ -329,6 +329,7 @@ int sys_createthread(int (*twrap), int (*function)(void *param), void *param)
   uchild->stack[KERNEL_STACK_SIZE-2] = (unsigned long)&user_stack[1021];
   uchild->stack[KERNEL_STACK_SIZE-5] = (unsigned long)twrap;     //eip LA DEL WRAPPER
 
+  uchild->task.register_esp = (unsigned long)&uchild->stack[KERNEL_STACK_SIZE-18];
   /*cambiar el contesto hw de este thread  modificar cont hw para que canduo vuelva a usr la pila 
   que utilizaras es a que acabo de alocatar i la instr que haras el la 1a instr de la funcion
   me alicao un pag para la pila de usr empilar parametro i poner un 0 (= dir de retorno)
@@ -346,6 +347,7 @@ int sys_createthread(int (*twrap), int (*function)(void *param), void *param)
   /* Queue child process into readyqueue */
   uchild->task.state=ST_READY;
   list_add_tail(&(uchild->task.list), &readyqueue);
+  //que el reg 
   
   return 0; 
 }
@@ -431,7 +433,7 @@ int sys_sem_init(int n_sem, unsigned int value)
 {
   if (valid_sem(n_sem, 1) != 0) return -1;
   //list_sem[n_sem].destroyed = 0;
-  current()->destroyed = 0; 
+  //current()->destroyed = 0; 
   list_sem[n_sem].counter = value;
   INIT_LIST_HEAD(&list_sem[n_sem].blocked);
   list_sem[n_sem].isInit = 1;
@@ -447,7 +449,10 @@ int sys_sem_wait(int n_sem)
     sched_next_rr();
   }
   //if (list_sem[n_sem].destroyed == 1) return -1;
-  if (current()->destroyed == 1) return -1;
+  if (current()->destroyed == 1) {
+    current()->destroyed = 0;
+    return -1;
+  }
   return 0;
 }
 
@@ -471,7 +476,9 @@ int sys_sem_destroy(int n_sem) //todos los sem destroy a 1 , lo tenemos el en ta
     struct list_head *lib = list_first(&list_sem[n_sem].blocked);
     list_del(lib);
     //list_sem[n_sem].destroyed = 1;
-    current()->destroyed = 1;
+    //list_head_to current()->destroyed = 1;
+    struct task_struct *l = list_head_to_task_struct(lib);
+    l->destroyed = 1;
     list_add_tail(lib, &readyqueue);
   }
   list_sem[n_sem].isInit = 0;

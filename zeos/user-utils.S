@@ -134,7 +134,7 @@ ENTRY(createthread)			// PARAMETRES VEN PASSATS??
 	pushl %edx
 	movl $23, %eax 			//entrada 23
 	
-	movl twrap, %ebx		//thread wrapper
+	movl $twrap, %ebx		//thread wrapper
 	movl 0x8(%ebp), %ecx;	//int (*function)(void *param)
 	movl 0xC(%ebp), %edx;	//void *param
 

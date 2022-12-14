@@ -25,6 +25,12 @@ int isLateral(int i){
   else return 0;
 }
 
+void func(void*a){
+  for (int i = 0; i < 300; ++i) {
+    write(1,"Hola",4);
+  }
+}
+
 void func_thread2(void *address){
   dump_screen(address);
 }
@@ -37,6 +43,10 @@ int __attribute__ ((__section__(".text.main")))
      
      //provar d'escriure en la direccio de memoria etc
     
+    //createthread(func,0);
+    //for (int i = 0 ; i < 300; ++i) write(1,"adios",5);
+
+
     char *buff;
     char c;
     short *matrix;
@@ -64,30 +74,32 @@ int __attribute__ ((__section__(".text.main")))
 
 
   while(1) {
+    
+
+    
     if (get_key(&c) == 0){
       if(write(1, &c, sizeof(&c)) == -1) perror();
 
-      matrix = alloc();
-      if((int)matrix == -1) perror();
+      short * matrix2;
+      matrix2 = alloc();
+      if((int)matrix2 == -1) perror();
       for (int i = 0; i < NUM_COLUMNS*NUM_ROWS; ++i){
-        *(matrix + i) = stos('.',0x03);
-      } //80*i + x
-      /*for (int i = 0; i < NUM_ROWS; ++i) {
+        *(matrix2 + i) = stos('.',0x03);
+      } /*  80*i + x
+      for (int i = 0; i < NUM_ROWS; ++i) {
         for (int j = 0; j < NUM_COLUMNS; ++j) {
           matrix[i][j] = stos('.',0x03);
         }
-      }*/
+      } */
 
-      /*if (sem_init(0, 0) == -1) perror();
+      /* if (sem_init(0, 0) == -1) perror();
+      if (sem_destroy(0) == -1) perror();
+      if (sem_signal(0) == -1) perror();
+      if (sem_wait(0) == -1) perror(); */
 
-      //if (sem_wait(0) == -1) perror();
-      //if (sem_signal(0) == -1) perror();
-
-      if (sem_destroy(0) == -1) perror();*/
-
-      if (createthread(func_thread2, matrix) == -1) perror();
+      if (createthread(func_thread2, matrix2) == -1) perror();
       
-      if (dealloc(matrix) == -1) perror();
+      if (dealloc(matrix2) == -1) perror();
     }
   }
 }
