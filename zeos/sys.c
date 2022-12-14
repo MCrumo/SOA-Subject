@@ -336,9 +336,8 @@ int sys_createthread(int (*twrap), int (*function)(void *param), void *param)
   unsigned long * 1023 es la ultima y donde hay que comenzar a empilar
   *  QUINES DADES HEM DE COPIAR EXACTAMENT entre thread 1 i 2 ???
   *  com fer que EIP apunti a (*function) i SS a stak de |@ret|*func|*param|
-  */
 
-  /* CREAR UN CAMP global_TID i TID a la task_union (shced.h) */
+  CREAR UN CAMP global_TID i TID a la task_union (shced.h) */
   uchild->task.TID=++global_TID; // TID
 
    /* HEM DE FER UN stats to 0 o NO perq es compartit? */
@@ -411,7 +410,6 @@ int sys_get_key(char* c)
 typedef struct {
   int isInit;
   int counter;
-  //int destroyed;
   struct list_head blocked; //sacar del ready, se encola en semaforo i hace un sched next
 } semaphore;
 
@@ -431,9 +429,7 @@ int valid_sem(int n_sem, int isNew)
 
 int sys_sem_init(int n_sem, unsigned int value) 
 {
-  if (valid_sem(n_sem, 1) != 0) return -1;
-  //list_sem[n_sem].destroyed = 0;
-  //current()->destroyed = 0; 
+  if (valid_sem(n_sem, 1) != 0) return -1; 
   list_sem[n_sem].counter = value;
   INIT_LIST_HEAD(&list_sem[n_sem].blocked);
   list_sem[n_sem].isInit = 1;
@@ -448,7 +444,6 @@ int sys_sem_wait(int n_sem)
     list_add_tail(&(current()->list), &list_sem[n_sem].blocked);
     sched_next_rr();
   }
-  //if (list_sem[n_sem].destroyed == 1) return -1;
   if (current()->destroyed == 1) {
     current()->destroyed = 0;
     return -1;
@@ -475,8 +470,6 @@ int sys_sem_destroy(int n_sem) //todos los sem destroy a 1 , lo tenemos el en ta
   while (!list_empty(&list_sem[n_sem].blocked)){
     struct list_head *lib = list_first(&list_sem[n_sem].blocked);
     list_del(lib);
-    //list_sem[n_sem].destroyed = 1;
-    //list_head_to current()->destroyed = 1;
     struct task_struct *l = list_head_to_task_struct(lib);
     l->destroyed = 1;
     list_add_tail(lib, &readyqueue);

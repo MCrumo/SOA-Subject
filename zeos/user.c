@@ -31,8 +31,14 @@ void func(void*a){
   }
 }
 
-void func_thread2(void *address){
-  dump_screen(address);
+void func_thread2(void *addr){
+  short *mat = alloc();
+  for (int i = 0; i < NUM_COLUMNS*NUM_ROWS; ++i){
+    *(mat + i) = *((short*)addr + i);
+  } 
+  if (dump_screen(mat) == -1) perror();
+  if (dealloc(mat) == -1) perror();
+  terminatethread();
 }
 
 int __attribute__ ((__section__(".text.main")))
@@ -45,9 +51,7 @@ int __attribute__ ((__section__(".text.main")))
     
     //createthread(func,0);
     //for (int i = 0 ; i < 300; ++i) write(1,"adios",5);
-
-
-    char *buff;
+  
     char c;
     short *matrix;
 
@@ -55,17 +59,11 @@ int __attribute__ ((__section__(".text.main")))
 
     if((int)matrix == -1) perror();
 
-    buff = "\n ALLOC FET\n";
-    if(write(1, buff, strlen(buff)) == -1) perror();
-
     for (int i = 0; i < NUM_COLUMNS*NUM_ROWS; ++i){
       if (isLateral(i)) *(matrix + i) = stos('+',0x03);
       else if (isRoof(i)) *(matrix + i) = stos('+',0x03);
       if (i==1500) *(matrix + i) = stos('O',0x02);
     }
-
-    buff = "\n MATRIU FETA TETE\n";
-    if(write(1, buff, strlen(buff)) == -1) perror();
      
     if (dump_screen(matrix) == -1 ) perror();
 
@@ -74,18 +72,17 @@ int __attribute__ ((__section__(".text.main")))
 
 
   while(1) {
-    
-
-    
+  
     if (get_key(&c) == 0){
       if(write(1, &c, sizeof(&c)) == -1) perror();
 
-      short * matrix2;
-      matrix2 = alloc();
-      if((int)matrix2 == -1) perror();
+      matrix = alloc();
+      if((int)matrix == -1) perror();
+
       for (int i = 0; i < NUM_COLUMNS*NUM_ROWS; ++i){
-        *(matrix2 + i) = stos('.',0x03);
-      } /*  80*i + x
+        *(matrix + i) = stos('.',0x03);
+      } 
+      /*  80*i + x
       for (int i = 0; i < NUM_ROWS; ++i) {
         for (int j = 0; j < NUM_COLUMNS; ++j) {
           matrix[i][j] = stos('.',0x03);
@@ -97,9 +94,9 @@ int __attribute__ ((__section__(".text.main")))
       if (sem_signal(0) == -1) perror();
       if (sem_wait(0) == -1) perror(); */
 
-      if (createthread(func_thread2, matrix2) == -1) perror();
+      if (createthread(func_thread2, (void*)matrix) == -1) perror();
       
-      if (dealloc(matrix2) == -1) perror();
+      if (dealloc(matrix) == -1) perror();
     }
   }
 }

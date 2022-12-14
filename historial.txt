@@ -3,6 +3,8 @@
 semaphores 	-> sacar del ready, se encola en semaforo i hace un sched next (sem wait)
 threads 	-> validar-les
 
+tenim un priblema amb dump_screen + trheads quan treballen conjuntament
+
 necessitamos un buffer de exclusion mutua. el mateix semafor que utilitzen els 2
 
 ======================================================================================
