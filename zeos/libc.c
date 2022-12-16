@@ -52,20 +52,14 @@ void perror()
   write(1, buffer, strlen(buffer));
 }
 
+void twrap(void (*function)(void *param), void *param)
+{
+  function(param);
+  terminatethread();
+}
+
 short stos(char ch, char color)
 {  // Screen TO Short
   short col = color << 8;
   return ch | col;
-}
-
-void twrap(void (*function)(void *param), void *param)
-{
-  // EXECUTAR LA FUNCIO D'USUARI
-  /*char *buff;
-  buff = "\n DINS DE TWRAP\n";
-  if(write(1, buff, strlen(buff)) == -1) perror();*/
-    
-    
-  function(param);
-  terminatethread();
 }
