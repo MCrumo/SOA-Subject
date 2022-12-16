@@ -6,6 +6,7 @@
 char c;
 extern int gettime();
 
+
 char buff[24];
 int pid;
 
@@ -41,7 +42,6 @@ typedef struct {
   int ship_shoot;
 
   int wall;
-  int boom;
 } cell;
 
 cell board[NUM_ROWS][NUM_COLUMNS];
@@ -52,7 +52,6 @@ short shield = 0x0800 | 'o';
 short alien_shoot = 0x0E00 | 't'; 
 short ship_shoot = 0x0C00 | 'i';  
 short wall = 0x1000 | 0;
-short boom = 0x4E00 | 'o';        
 
 int LOSE = 0;
 int dead_zone = 19;
@@ -88,7 +87,6 @@ void init_board(cell board[NUM_ROWS][NUM_COLUMNS]){
       if (((j>9&&j<9*2)||(j>9*3&&j<9*4)||(j>9*5&&j<9*6)||(j>9*7&&j<9*8))&&(i==dead_zone||i==dead_zone-1)) board[i][j].shield=1;
       //trying shoots--------
       if (i==x_aliens+5 && j == 5) board[i][j].alien_shoot=1;
-      if (i == 21 && j == 40) board[i][j].ship_shoot=1;
     }
   }
 }
@@ -102,7 +100,6 @@ void board_to_screen(short* matrix){
       else if (board[i][j].shield == 1) *(matrix + (NUM_COLUMNS*i) + j) = shield;
       else if (board[i][j].alien_shoot == 1) *(matrix + (NUM_COLUMNS*i) + j) = alien_shoot;
       else if (board[i][j].ship_shoot == 1) *(matrix + (NUM_COLUMNS*i) + j) = ship_shoot;
-      else if (board[i][j].boom == 1) { board[i][j].boom=0; *(matrix + (NUM_COLUMNS*i) + j) = boom;}
       else *(matrix + (NUM_COLUMNS*i) + j) = 0x0000;
     }
   }
@@ -125,7 +122,6 @@ void aliens_down(){
           board[i+1][j].alien = 1;
           if (board[i][j].shield == 1) board[i][j].shield = 0;
         }
-        else board[i][j].boom = 1;
       }
     }
   }
@@ -137,7 +133,6 @@ void aliens_right(){
         if (board[i][j].shield == 1) board[i][j].shield = 0;
         board[i][j].alien = 0;
         if (board[i][j].ship_shoot!=1) board[i][j+1].alien = 1;
-        else board[i][j].boom = 1;
       }
     }
   }
@@ -149,7 +144,6 @@ void aliens_left(){
         if (board[i][j].shield == 1) board[i][j].shield = 0;
         board[i][j].alien = 0;
         if (board[i][j].ship_shoot!=1) board[i][j-1].alien = 1;
-        else board[i][j].boom = 1;
       }
     }
   }
@@ -200,20 +194,73 @@ void move_aliens(){
     }
   }
 }
-void move_shoots(){
+
+void move_shoots_aliens(){
+  for (int i = 23; i >= 2; --i){
+    for (int j = 2; j <= NUM_COLUMNS-3; ++j){
+      if (board[i][j].alien_shoot){
+        if (board[i][j].shield){ 
+          board[i][j].shield = 0;
+        }
+        else if (i<NUM_ROWS-2 && (board[i][j].ship_shoot!=1||board[i+1][j].ship_shoot!=1)) board[i+1][j].alien_shoot = 1;
+        if (board[i][j].ship) {
+          LOSE = 1;
+        }
+        board[i][j].alien_shoot = 0;
+      }
+    }
+  }
+}
+
+void move_shoots_ship(){
   for (int i = 2; i < 24; ++i){
     for (int j = 2; j <= NUM_COLUMNS-3;++j){
-      if (board[i][j].alien_shoot){
-        if (board[i][j].shield) board[i][j].shield = 0;
-        else if (i<NUM_ROWS-2 && board[i][j].ship_shoot!=1) board[i+1][j].alien_shoot = 1;
-        if (board[i][j].ship) LOSE = 1;
-      }
       if (board[i][j].ship_shoot){
-        if (board[i][j].alien) board[i][j].alien = 0; 
-        else if (!board[i-1][j].shield && (i>=3) && board[i][j].alien_shoot!=1) board[i-1][j].ship_shoot = 1;
+        if (board[i][j].alien) {
+          board[i][j].alien = 0; 
+        }
+        else if (!board[i-1][j].shield && (i>=3) && (board[i][j].alien_shoot!=1||board[i-1][j].alien_shoot!=1)) board[i-1][j].ship_shoot = 1;
+        board[i][j].ship_shoot = 0;
       }
-      board[i][j].alien_shoot = 0;
-      board[i][j].ship_shoot = 0;
+    }
+  }
+}
+void cancel_shoots(){
+  for (int i = 2; i < 24; ++i){
+    for (int j = 2; j <= NUM_COLUMNS-3;++j){
+      if (board[i][j].alien_shoot == 1 && board[i+1][j].ship_shoot == 1){
+        board[i][j].alien_shoot = 0;
+        board[i+1][j].ship_shoot = 0;
+      }
+    }
+  }
+}
+
+void move_shoots(){
+  cancel_shoots();
+  move_shoots_aliens();
+  move_shoots_ship();
+}
+void make_ship_shoot(){
+  board[x_ship-2][y_ship].ship_shoot = 1;
+}
+
+void ia_shoot_alien(){
+  int max_aliens_shoots = 3;
+  int count;
+  short is_alien[80];
+  for (int m = 0; m < 80; ++m) is_alien[m] = 0;
+  for (int i = 23; i >= 2; --i){
+    for (int j = 2; j <= NUM_COLUMNS-3; ++j){
+      if (board[i][j].alien && is_alien[j] == 0) is_alien[j] = i;
+    }
+  }
+  for (int k = 0; k < 80 && count <= max_aliens_shoots; ++k){
+    if (is_alien[k] > 0){
+      if (gettime()%3 == 0) {
+        board[is_alien[k]][k].alien_shoot = 1;
+        ++count;
+      }
     }
   }
 }
@@ -221,6 +268,7 @@ void move_shoots(){
 void ia_move(){
   move_shoots();
   move_aliens();
+  ia_shoot_alien();
 }
 
 void func_thread2(void *addr){
@@ -243,12 +291,19 @@ int __attribute__ ((__section__(".text.main")))
         ship_left();
         board_to_screen(mat);
         dump_screen(mat);
-        dealloc(mat);
-        
+        dealloc(mat); 
       }
       else if (c == 'd'){
         short*mat = alloc();
         ship_right();
+        board_to_screen(mat);
+        dump_screen(mat);
+        dealloc(mat);
+      }
+      else if (c == 's'){
+        short*mat = alloc();
+        make_ship_shoot();
+        ia_move();
         board_to_screen(mat);
         dump_screen(mat);
         dealloc(mat);
@@ -263,7 +318,7 @@ int __attribute__ ((__section__(".text.main")))
       }
     }
   }
-
+  /*
   while(1) {
 
     setup();
@@ -296,10 +351,11 @@ int __attribute__ ((__section__(".text.main")))
       /* if (sem_init(0, 0) == -1) perror();
       if (sem_destroy(0) == -1) perror();
       if (sem_signal(0) == -1) perror();
-      if (sem_wait(0) == -1) perror(); */
+      if (sem_wait(0) == -1) perror();
 
       if (createthread(func_thread2, (void*)matrix) == -1) perror();
       
+      
     }
-  }
+  }*/
 }
