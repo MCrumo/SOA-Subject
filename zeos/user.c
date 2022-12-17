@@ -62,6 +62,10 @@ int y_ship = NUM_COLUMNS/2;
 int move_right = 1;
 int move_left = 0;
 int move_down = 0;
+int last_shoot = 3;
+int shoot_pointer = 1;
+int fps = 99;
+int pfd = 37;
 
 int t0 = 0;
 short *mat;
@@ -91,7 +95,28 @@ void init_board(cell board[NUM_ROWS][NUM_COLUMNS]){
   }
 }
 void board_to_screen(short* matrix){
-  for (int i=0; i<NUM_ROWS; ++i){
+  char cent;
+  char unit;
+  int a = 0; //offsets
+  int b = 7; //offsets
+  //Position x y
+  *(matrix) = stos('x',0x6); *(matrix+1) = stos(':',0x7);
+  itoa(y_ship/10, &cent); *(matrix+2) = stos(cent,0x6);
+  itoa(y_ship%10, &unit); *(matrix+3) = stos(unit,0x6);
+  *(matrix+5) = stos('y',0x6); *(matrix+6) = stos(':',0x7);
+  *(matrix+7) = stos('2',0x6); *(matrix+8) = stos('2',0x6);
+  //FPS
+  *(matrix+10+a) = stos('f',0x4); *(matrix+11+a) = stos('p',0x4); 
+  *(matrix+12+a) = stos('s',0x4); *(matrix+13+a) = stos(':',0x7);
+  itoa(fps/10, &cent); *(matrix+14+a) = stos(cent,0x4);
+  itoa(fps%10, &unit); *(matrix+15+a) = stos(unit,0x4);
+  //PFD
+  *(matrix+10+a+b) = stos('p',0xC); *(matrix+11+a+b) = stos('f',0xC); 
+  *(matrix+12+a+b) = stos('d',0xC); *(matrix+13+a+b) = stos(':',0x7);
+  itoa(pfd/10, &cent); *(matrix+14+a+b) = stos(cent,0xC);
+  itoa(pfd%10, &unit); *(matrix+15+a+b) = stos(unit,0xC);
+  //board
+  for (int i=1; i<NUM_ROWS; ++i){
     for (int j=0; j<NUM_COLUMNS; ++j){
       if (board[i][j].alien == 1) *(matrix + (NUM_COLUMNS*i) + j) = alien;
       else if (board[i][j].wall == 1) *(matrix + (NUM_COLUMNS*i) + j) = wall;
@@ -105,10 +130,12 @@ void board_to_screen(short* matrix){
 }
 void setup(){
   init_board(board);
-  short* matrix = alloc();
-  board_to_screen(matrix);
-  dump_screen(matrix);
-  dealloc(matrix);
+  sem_init(0, 1);
+  mat = alloc();
+  board_to_screen(mat);
+  //createthread(thread_dump,);
+  dump_screen(mat);
+  dealloc(mat);
 }
 void aliens_down(){
   for (int i = 22; i >= 3; --i){
@@ -242,20 +269,27 @@ void make_ship_shoot(){
   }
 }
 void ia_shoot_alien(){
-  int max_aliens_shoots = 3;
-  int count;
+  int max_aliens_shoots = 1;
+  int count = 0;
+  int total_aliens = 0;
   short is_alien[80];
-  for (int m = 0; m < 80; ++m) is_alien[m] = 0;
-  for (int i = 23; i >= 2; --i){
-    for (int j = 2; j <= NUM_COLUMNS-3; ++j){
-      if (board[i][j].alien && is_alien[j] == 0) is_alien[j] = i;
+  if(gettime()%3){
+    for (int m = 0; m < 80; ++m) is_alien[m] = 0;
+    for (int i = 23; i >= 2; --i){
+      for (int j = 2; j <= NUM_COLUMNS-3; ++j){
+        if (board[i][j].alien){
+          ++total_aliens;
+          if (is_alien[j] == 0) is_alien[j] = i;
+        }
+      }
     }
-  }
-  for (int k = 0; k < 80 && count <= max_aliens_shoots; ++k){
-    if (is_alien[k] > 0){
-      if (gettime()%3 == 0) {
+    for (int k = last_shoot; k < 80 && count < max_aliens_shoots; ++k){
+      if (is_alien[k] > 0){
         board[is_alien[k]][k].alien_shoot = 1;
         ++count;
+        ++shoot_pointer;
+        last_shoot = (y_aliens+49)/shoot_pointer;
+        shoot_pointer = shoot_pointer%4;
       }
     }
   }
@@ -267,9 +301,11 @@ void ia_move(){
 }
 
 void thread_dump(void *addr){
-  if (dump_screen(addr) == -1) perror();
-  if (dealloc(addr) == -1) perror();
-  if (terminatethread() == -1) perror();
+  while(1){
+    if (dump_screen(addr) == -1) perror();
+    if (dealloc(addr) == -1) perror();
+  }
+  terminatethread();
 }
 
 int __attribute__ ((__section__(".text.main")))
@@ -295,7 +331,7 @@ int __attribute__ ((__section__(".text.main")))
           dump_screen(mat);
           dealloc(mat);
         }
-        else if (c == 's'){
+        else if (c == 'w'){
           mat = alloc();
           make_ship_shoot();
           board_to_screen(mat);
@@ -303,7 +339,7 @@ int __attribute__ ((__section__(".text.main")))
           dealloc(mat);
         }
       }
-      if (gettime()-t0 > SEG*2){
+      if (gettime()-t0 > SEG){
         mat = alloc();
         ia_move();
         board_to_screen(mat);
