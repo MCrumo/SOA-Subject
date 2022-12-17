@@ -1,11 +1,9 @@
 
 ==== MAIL ============================================================================
-semaphores 	-> sacar del ready, se encola en semaforo i hace un sched next (sem wait)
-threads 	-> validar-les
-
-tenim un priblema amb dump_screen + trheads quan treballen conjuntament
 
 necessitamos un buffer de exclusion mutua. el mateix semafor que utilitzen els 2
+
+POSSIBLE RACE CONDITION EN UPDATE FPS, maybe els semafors que ja utilitzem ho solucionen
 
 ======================================================================================
 user.c -> com eliminar el cursor de la tecla i la pantalla d'inici? -> no podem
@@ -75,6 +73,8 @@ thread1
  
  la lista se va a tener que implementar en exclusion mutua -> habra que implementar semaforos
  
+ 
+
 ==========================================================================================================
 ==========================================================================================================
 ==========================================================================================================

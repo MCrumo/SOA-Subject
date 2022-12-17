@@ -1,8 +1,14 @@
 #include <libc.h>
+#include <list.h>
 
 #define NUM_ROWS 25
 #define NUM_COLUMNS 80
+
 #define SEG 20
+#define SEG_ZEOS 20
+
+#define BUFF_SIZE 64
+
 char c;
 extern int gettime();
 
@@ -70,6 +76,54 @@ int pfd = 37;
 int t0 = 0;
 short *mat;
 
+/*=============BUFFER CIRCULAR BAKA BAKA=============*/
+
+int frame_buff[BUFF_SIZE];
+int Head = 0;
+int Tail = 0;
+int IsFull_Flag = 0;
+
+int pending_frames() {
+  if (Head < Tail) return Tail-Head;
+  else if (Head > Tail) return Head-Tail;
+  else return 0;
+}
+
+void push_frame(short * mat)
+{
+  //the buff is not full
+  if (IsFull_Flag == 0) { 
+    frame_buff[Head] = (int)mat;
+    Head = (Head + 1)%BUFF_SIZE;
+    if (Head == Tail) IsFull_Flag = 1;
+  }
+}
+
+int read_frame(short * mat)
+{
+  //the buffer is empty
+  if ((Head == Tail) && (IsFull_Flag != 1)){
+    return -1;
+  } 
+  else {
+    *mat = frame_buff[Tail];
+    Tail = (Tail + 1)%BUFF_SIZE;
+    IsFull_Flag = 0;
+    return 0;
+  }
+}
+
+int segons_prveis = 0;
+int total_frames = 0;
+
+int update_fps() {
+    int ret_fps = 12;
+    //ret_fps = total_frames /((gettime()-segons_prveis)/SEG_ZEOS);
+    segons_prveis = gettime();
+    total_frames = 0;
+    return ret_fps;
+}
+
 int is_wall(int i, int j){
   return ((i==1)||(i==NUM_ROWS-1)||((j==0||j==1) && i!=0)||((j==NUM_COLUMNS-1||j==NUM_COLUMNS-2) && i!=0));
 }
@@ -106,11 +160,13 @@ void board_to_screen(short* matrix){
   *(matrix+5) = stos('y',0x6); *(matrix+6) = stos(':',0x7);
   *(matrix+7) = stos('2',0x6); *(matrix+8) = stos('2',0x6);
   //FPS
+  fps = update_fps();
   *(matrix+10+a) = stos('f',0x4); *(matrix+11+a) = stos('p',0x4); 
   *(matrix+12+a) = stos('s',0x4); *(matrix+13+a) = stos(':',0x7);
   itoa(fps/10, &cent); *(matrix+14+a) = stos(cent,0x4);
   itoa(fps%10, &unit); *(matrix+15+a) = stos(unit,0x4);
   //PFD
+  pfd = pending_frames();
   *(matrix+10+a+b) = stos('p',0xC); *(matrix+11+a+b) = stos('f',0xC); 
   *(matrix+12+a+b) = stos('d',0xC); *(matrix+13+a+b) = stos(':',0x7);
   itoa(pfd/10, &cent); *(matrix+14+a+b) = stos(cent,0xC);
@@ -126,16 +182,36 @@ void board_to_screen(short* matrix){
       else if (board[i][j].ship_shoot == 1) *(matrix + (NUM_COLUMNS*i) + j) = ship_shoot;
       else *(matrix + (NUM_COLUMNS*i) + j) = 0x0000;
     }
-  }
+  }  
 }
-void setup(){
-  init_board(board);
-  sem_init(0, 1);
+
+void thread_push() {
+  sem_wait(0);
   mat = alloc();
   board_to_screen(mat);
-  //createthread(thread_dump,);
-  dump_screen(mat);
-  dealloc(mat);
+  push_frame(mat);
+  sem_signal(0);
+}
+
+void thread_dump(void *addr){
+  while(1){
+    short mat;
+    sem_wait(0); //EVITO RACE CONDITION BAKABAKA
+    if (read_frame(&mat) != -1) {
+        if (dump_screen(&mat) == -1) perror();
+        if (dealloc(&mat) == -1) perror();
+    }
+    sem_signal(0);
+  }
+  
+  terminatethread();
+}
+
+void setup(){
+  init_board(board);
+  sem_init(0, 1); //DECLARO SEMAFORO 0 EXCLUSION MUTUA
+  createthread(thread_dump, &frame_buff);
+  thread_push();
 }
 void aliens_down(){
   for (int i = 22; i >= 3; --i){
@@ -300,14 +376,6 @@ void ia_move(){
   ia_shoot_alien();
 }
 
-void thread_dump(void *addr){
-  while(1){
-    if (dump_screen(addr) == -1) perror();
-    if (dealloc(addr) == -1) perror();
-  }
-  terminatethread();
-}
-
 int __attribute__ ((__section__(".text.main")))
   main(void)
 {
@@ -331,34 +399,21 @@ int __attribute__ ((__section__(".text.main")))
     while(!LOSE){
       if(get_key(&c) == 0){
         if(c == 'a'){
-          mat = alloc();
           ship_left();
-          board_to_screen(mat);
-          dump_screen(mat);
-          dealloc(mat); 
+          thread_push();
         }
         else if (c == 'd'){
-          mat = alloc();
           ship_right();
-          board_to_screen(mat);
-          dump_screen(mat);
-          dealloc(mat);
+          thread_push();
         }
         else if (c == 'w'){
-          mat = alloc();
           make_ship_shoot();
-          board_to_screen(mat);
-          dump_screen(mat);
-          dealloc(mat);
+          thread_push();
         }
       }
       if (gettime()-t0 > SEG){
-        mat = alloc();
         ia_move();
-        board_to_screen(mat);
-        dump_screen(mat);
-        dealloc(mat);
-        t0 = gettime();
+        thread_push();
       }
     }
     //PRINT A GAME OVER

@@ -64,7 +64,7 @@ kernel-utils.s: kernel-utils.S $(INCLUDEDIR)/asm.h
 sys_call_table.s: sys_call_table.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
-user.o:user.c $(INCLUDEDIR)/libc.h
+user.o:user.c $(INCLUDEDIR)/libc.h $(INCLUDEDIR)/list.h
 
 interrupt.o:interrupt.c $(INCLUDEDIR)/interrupt.h $(INCLUDEDIR)/segment.h $(INCLUDEDIR)/types.h
 
