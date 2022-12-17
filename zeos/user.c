@@ -314,6 +314,19 @@ int __attribute__ ((__section__(".text.main")))
   
   setup();
   
+    /*short * matrix;
+    matrix = alloc();
+    short * aux;// = matrix;
+    for (int i = 0; i < NUM_ROWS; ++i) {
+        for (int j = 0; j< NUM_COLUMNS; ++j) {
+            aux = matrix+80*i+j;
+            *aux = stos('.', j);
+        }
+    }
+    dump_screen(matrix);
+
+    while(1);*/
+  
   while(1){
     while(!LOSE){
       if(get_key(&c) == 0){
