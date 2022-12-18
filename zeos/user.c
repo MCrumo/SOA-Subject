@@ -78,7 +78,7 @@ short *mat;
 
 /*=============BUFFER CIRCULAR BAKA BAKA=============*/
 
-int frame_buff[BUFF_SIZE];
+short *frame_buff[BUFF_SIZE];
 int Head = 0;
 int Tail = 0;
 int IsFull_Flag = 0;
@@ -89,24 +89,22 @@ int pending_frames() {
   else return 0;
 }
 
-void push_frame(short * mat)
-{
+void push_frame(short * mat){
   //the buff is not full
   if (IsFull_Flag == 0) { 
-    frame_buff[Head] = (int)mat;
+    frame_buff[Head] = mat;
     Head = (Head + 1)%BUFF_SIZE;
     if (Head == Tail) IsFull_Flag = 1;
   }
 }
 
-int read_frame(short * mat)
-{
+int read_frame(short * mat){
   //the buffer is empty
   if ((Head == Tail) && (IsFull_Flag != 1)){
     return -1;
   } 
   else {
-    *mat = frame_buff[Tail];
+    mat = frame_buff[Tail];
     Tail = (Tail + 1)%BUFF_SIZE;
     IsFull_Flag = 0;
     return 0;
@@ -184,29 +182,28 @@ void board_to_screen(short* matrix){
     }
   }  
 }
-
 void thread_push() {
-  sem_wait(0);
+  if (sem_wait(0) == -1) perror();
   mat = alloc();
   board_to_screen(mat);
   push_frame(mat);
-  sem_signal(0);
+  if (sem_signal(0) == -1) perror();
 }
-
 void thread_dump(void *addr){
   while(1){
     short mat;
-    sem_wait(0); //EVITO RACE CONDITION BAKABAKA
+    if (sem_wait(0) == -1) perror(); //EVITO RACE CONDITION BAKABAKA
     if (read_frame(&mat) != -1) {
+        write(1," EYE",4);
         if (dump_screen(&mat) == -1) perror();
+        write(1," ALE",4);
         if (dealloc(&mat) == -1) perror();
+        write(1," JOT",4);
     }
-    sem_signal(0);
+    if (sem_signal(0)== -1) perror();
   }
-  
   terminatethread();
 }
-
 void setup(){
   init_board(board);
   sem_init(0, 1); //DECLARO SEMAFORO 0 EXCLUSION MUTUA
