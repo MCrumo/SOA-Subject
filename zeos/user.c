@@ -4,39 +4,15 @@
 #define NUM_ROWS 25
 #define NUM_COLUMNS 80
 
-#define SEG 20
-#define SEG_ZEOS 20
+#define SEG 200 //moviment ia
+#define SEG_ZEOS 1000 //calcul fps
 
 #define BUFF_SIZE 64
+#define NULL 0
 
 char c;
 extern int gettime();
 
-
-char buff[24];
-int pid;
-
-/*
-0x0 -> Black
-0x1 -> Blue Dark
-0x2 -> Green 
-0x3 -> Cian
-0x4 -> Red
-0x5 -> Magenta
-0x6 -> Orange
-0x7 -> White
-0x8 -> Grey
-0x9 -> Magenta
-0xA -> Green 
-0xB -> Cian
-0xC -> Red pastel 
-0xD -> Pink
-0xE -> Yellow
-0xF -> Wite
-0x1X-> UNDERLINED Blue Dark
-0x2X-> Underlined Green
-0x3X-> Underlined Cian
-*/
 
 typedef struct {
   int alien;
@@ -74,7 +50,7 @@ int fps = 99;
 int pfd = 37;
 
 int t0 = 0;
-short *mat;
+short * mat;
 
 /*=============BUFFER CIRCULAR BAKA BAKA=============*/
 
@@ -98,28 +74,36 @@ void push_frame(short * mat){
   }
 }
 
-int read_frame(short * mat){
+short * read_frame(){
   //the buffer is empty
   if ((Head == Tail) && (IsFull_Flag != 1)){
-    return -1;
+    return NULL;
   } 
   else {
-    mat = frame_buff[Tail];
+    short * tmp = frame_buff[Tail];
     Tail = (Tail + 1)%BUFF_SIZE;
     IsFull_Flag = 0;
-    return 0;
+    return tmp;
   }
 }
 
+/*===================================================*/
+
 int segons_prveis = 0;
 int total_frames = 0;
+int global_fps = 0;
 
 int update_fps() {
-    int ret_fps = 12;
-    //ret_fps = total_frames /((gettime()-segons_prveis)/SEG_ZEOS);
-    segons_prveis = gettime();
-    total_frames = 0;
-    return ret_fps;
+    int aux_fps = global_fps;
+    int aux_segs = gettime() - segons_prveis;
+    if (aux_segs >= SEG_ZEOS) {
+        aux_fps = ((total_frames*SEG_ZEOS) / (aux_segs));
+        global_fps = aux_fps;
+        segons_prveis = gettime();
+        total_frames = 0;
+    }
+    
+    return aux_fps;
 }
 
 int is_wall(int i, int j){
@@ -169,6 +153,23 @@ void board_to_screen(short* matrix){
   *(matrix+12+a+b) = stos('d',0xC); *(matrix+13+a+b) = stos(':',0x7);
   itoa(pfd/10, &cent); *(matrix+14+a+b) = stos(cent,0xC);
   itoa(pfd%10, &unit); *(matrix+15+a+b) = stos(unit,0xC);
+  
+  //HEAD I TAIL
+  int auxxx = 7;
+  *(matrix+10+a+b+auxxx) = stos('h',0xC); *(matrix+11+a+b+auxxx) = stos('e',0xC);
+  *(matrix+12+a+b+auxxx) = stos('a',0xC);
+  *(matrix+13+a+b+auxxx) = stos('d',0xC); *(matrix+14+a+b+auxxx) = stos(':',0x7);
+  itoa(Head/10, &cent); *(matrix+15+a+b+auxxx) = stos(cent,0xC);
+  itoa(Head%10, &unit); *(matrix+16+a+b+auxxx) = stos(unit,0xC);
+  
+  int auxxx2 = 15;
+  *(matrix+10+a+b+auxxx2) = stos('t',0xC); *(matrix+11+a+b+auxxx2) = stos('a',0xC); 
+  *(matrix+12+a+b+auxxx2) = stos('i',0xC); *(matrix+13+a+b+auxxx2) = stos('l',0xC);
+  *(matrix+14+a+b+auxxx2) = stos(':',0x7);
+  itoa(Tail/10, &cent); *(matrix+15+a+b+auxxx2) = stos(cent,0xC);
+  itoa(Tail%10, &unit); *(matrix+16+a+b+auxxx2) = stos(unit,0xC);
+  
+  
   //board
   for (int i=1; i<NUM_ROWS; ++i){
     for (int j=0; j<NUM_COLUMNS; ++j){
@@ -189,25 +190,40 @@ void thread_push() {
   push_frame(mat);
   if (sem_signal(0) == -1) perror();
 }
+
+void thread_dump_test() {
+    //short mat;
+    if (sem_wait(0) == -1) perror(); //EVITO RACE CONDITION BAKABAKA
+    short * tmp = read_frame();
+    if (tmp != NULL) {
+        if (dump_screen(tmp) == -1) perror();
+        ++total_frames;
+        if (dealloc(tmp) == -1) perror();
+    }
+    
+    if (sem_signal(0) == -1) perror();
+}
+
 void thread_dump(void *addr){
   while(1){
-    short mat;
+    //short mat;
     if (sem_wait(0) == -1) perror(); //EVITO RACE CONDITION BAKABAKA
-    if (read_frame(&mat) != -1) {
-        write(1," EYE",4);
-        if (dump_screen(&mat) == -1) perror();
-        write(1," ALE",4);
-        if (dealloc(&mat) == -1) perror();
-        write(1," JOT",4);
+    short * tmp = read_frame();
+    if (tmp != NULL) {//maybe NULL 
+        if (dump_screen(tmp) == -1) perror();
+        ++total_frames;
+        if (dealloc(tmp) == -1) perror();
     }
-    if (sem_signal(0)== -1) perror();
+    
+    if (sem_signal(0) == -1) perror();
   }
+  
   terminatethread();
 }
 void setup(){
   init_board(board);
   sem_init(0, 1); //DECLARO SEMAFORO 0 EXCLUSION MUTUA
-  createthread(thread_dump, &frame_buff);
+  //createthread(thread_dump, &frame_buff);
   thread_push();
 }
 void aliens_down(){
@@ -378,8 +394,9 @@ int __attribute__ ((__section__(".text.main")))
 {
   
   setup();
+  thread_dump_test();
   
-    /*short * matrix;
+    /*short * matrix; //TESTING COLORS
     matrix = alloc();
     short * aux;// = matrix;
     for (int i = 0; i < NUM_ROWS; ++i) {
@@ -398,19 +415,24 @@ int __attribute__ ((__section__(".text.main")))
         if(c == 'a'){
           ship_left();
           thread_push();
+          thread_dump_test();
         }
         else if (c == 'd'){
           ship_right();
           thread_push();
+          thread_dump_test();
         }
         else if (c == 'w'){
           make_ship_shoot();
           thread_push();
+          thread_dump_test();
         }
       }
       if (gettime()-t0 > SEG){
         ia_move();
         thread_push();
+        thread_dump_test();
+        t0 = gettime();
       }
     }
     //PRINT A GAME OVER
