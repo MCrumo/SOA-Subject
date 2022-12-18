@@ -106,6 +106,29 @@ int update_fps() {
     return aux_fps;
 }
 
+#define MAXSAMPLES 100
+int tickindex=0;
+int ticksum=0;
+int ticklist[MAXSAMPLES];
+double fps_global;
+
+/* need to zero out the ticklist array before starting */
+/* average will ramp up until the buffer is full */
+/* returns average ticks per frame over the MAXSAMPLES last frames */
+
+double CalcAverageTick(int newtick)
+{
+    ticksum-=ticklist[tickindex];  /* subtract value falling off */
+    ticksum+=newtick;              /* add new value */
+    ticklist[tickindex]=newtick;   /* save new value so it can be subtracted later */
+    if(++tickindex==MAXSAMPLES)    /* inc buffer index */
+        tickindex=0;
+
+    /* return average */
+    //return((double)ticksum/MAXSAMPLES);
+    return ((MAXSAMPLES/(double)ticksum)*(SEG_ZEOS));
+}
+
 int is_wall(int i, int j){
   return ((i==1)||(i==NUM_ROWS-1)||((j==0||j==1) && i!=0)||((j==NUM_COLUMNS-1||j==NUM_COLUMNS-2) && i!=0));
 }
@@ -124,7 +147,8 @@ void init_board(cell board[NUM_ROWS][NUM_COLUMNS]){
         board[i][j+2].ship = 1;
       }
       // put ALIENS
-      if ((i==x_aliens || i==x_aliens+2 || i==x_aliens+4) && (j>=y_aliens && j%2==0 && j<52)) board[i][j].alien=1;
+      if ((i==x_aliens || i==x_aliens+4) && (j>=y_aliens && j%2==0 && j<52)) board[i][j].alien=1;
+      if (i==x_aliens+2 && j>=y_aliens && j%2==1 && j<51) board[i][j].alien=1;
       // put SHIELDS
       if (((j>9&&j<9*2)||(j>9*3&&j<9*4)||(j>9*5&&j<9*6)||(j>9*7&&j<9*8))&&(i==dead_zone||i==dead_zone-1)) board[i][j].shield=1;
     }
@@ -142,11 +166,12 @@ void board_to_screen(short* matrix){
   *(matrix+5) = stos('y',0x6); *(matrix+6) = stos(':',0x7);
   *(matrix+7) = stos('2',0x6); *(matrix+8) = stos('2',0x6);
   //FPS
-  fps = update_fps();
+  //fps = update_fps();
   *(matrix+10+a) = stos('f',0x4); *(matrix+11+a) = stos('p',0x4); 
   *(matrix+12+a) = stos('s',0x4); *(matrix+13+a) = stos(':',0x7);
-  itoa(fps/10, &cent); *(matrix+14+a) = stos(cent,0x4);
-  itoa(fps%10, &unit); *(matrix+15+a) = stos(unit,0x4);
+  itoa(fps_global/10, &cent); *(matrix+14+a) = stos(cent,0x4); //he cambiat fps per fps_global
+  itoa((int)fps_global%10, &unit); *(matrix+15+a) = stos(unit,0x4);
+  
   //PFD
   pfd = pending_frames();
   *(matrix+10+a+b) = stos('p',0xC); *(matrix+11+a+b) = stos('f',0xC); 
@@ -196,6 +221,7 @@ void thread_dump_test() {
     if (sem_wait(0) == -1) perror(); //EVITO RACE CONDITION BAKABAKA
     short * tmp = read_frame();
     if (tmp != NULL) {
+        fps_global = CalcAverageTick(gettime());
         if (dump_screen(tmp) == -1) perror();
         ++total_frames;
         if (dealloc(tmp) == -1) perror();
@@ -208,11 +234,12 @@ void thread_dump(void *addr){
   while(1){
     //short mat;
     if (sem_wait(0) == -1) perror(); //EVITO RACE CONDITION BAKABAKA
-    short * tmp = read_frame();
+    unsigned int tmp = read_frame();
     if (tmp != NULL) {//maybe NULL 
-        if (dump_screen(tmp) == -1) perror();
+        fps_global = CalcAverageTick(gettime());
+        if (dump_screen(&tmp) == -1) perror();
         ++total_frames;
-        if (dealloc(tmp) == -1) perror();
+        if (dealloc(&tmp) == -1) perror();
     }
     
     if (sem_signal(0) == -1) perror();
@@ -221,9 +248,11 @@ void thread_dump(void *addr){
   terminatethread();
 }
 void setup(){
+  for (int i = 0; i < MAXSAMPLES; ++i) ticklist[i] = 0; //Inicialitzacio falcul fps
+    
   init_board(board);
   sem_init(0, 1); //DECLARO SEMAFORO 0 EXCLUSION MUTUA
-  //createthread(thread_dump, &frame_buff);
+  createthread(thread_dump, &frame_buff);
   thread_push();
 }
 void aliens_down(){
@@ -353,7 +382,7 @@ void move_shoots(){
   move_shoots_ship();
 }
 void make_ship_shoot(){
-  if (board[x_ship-2][y_ship].ship_shoot!=1&&board[x_ship-2][y_ship].ship_shoot!=1&&board[x_ship-2][y_ship].ship_shoot!=1){
+  if (board[x_ship-2][y_ship].ship_shoot!=1&&board[x_ship-1][y_ship+1].ship_shoot!=1&&board[x_ship-1][y_ship-1].ship_shoot!=1){
     board[x_ship-1][y_ship].ship_shoot = 1;
   }
 }
@@ -415,23 +444,23 @@ int __attribute__ ((__section__(".text.main")))
         if(c == 'a'){
           ship_left();
           thread_push();
-          thread_dump_test();
+          //thread_dump_test();
         }
         else if (c == 'd'){
           ship_right();
           thread_push();
-          thread_dump_test();
+          //thread_dump_test();
         }
         else if (c == 'w'){
           make_ship_shoot();
           thread_push();
-          thread_dump_test();
+          //thread_dump_test();
         }
       }
       if (gettime()-t0 > SEG){
         ia_move();
         thread_push();
-        thread_dump_test();
+        //thread_dump_test();
         t0 = gettime();
       }
     }
