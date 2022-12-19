@@ -74,11 +74,21 @@ void twrap(void (*function)(void *param), void *param);
 #define WHITE       0xF
 
 //BACKGROUND COLOR
-#define BLUEBG      0x10 //Blue background      
-#define GREENBG     0x20 //Green background     
-#define CYANBG      0x30 //Cyan background      //BACKGROUND COLOR + LETTER COLOR
-#define REDBG       0x40 //Red background
-#define REDFLASHBG  0xC0
+#define BLUEBG          0x10 //Blue background      
+#define GREENBG         0x20 //Green background     
+#define CYANBG          0x30 //Cyan background      //BACKGROUND COLOR + LETTER COLOR
+#define REDBG           0x40 //Red background
+#define PURPLEBG        0x50
+#define ORANGEBG        0x60
+#define GREYBG          0x70
+#define BLACKFLASBG     0x80
+#define BLUEFLASHBG     0x90
+#define GREENFLASHBG    0xA0
+#define CYANFLASHBG     0xB0
+#define REDFLASHBG      0xC0
+#define PURPLEFLASHBG   0xD0
+#define ORANGEFLASHBG   0xE0
+#define GREYFLASHBG     0xF0
 
 
 #endif  /* __LIBC_H__ */
