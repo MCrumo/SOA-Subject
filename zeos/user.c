@@ -7,6 +7,8 @@
 #define SEG 18 //retard moviment ia
 #define SEG_ZEOS 18 //ticks per second zeos
 
+#define EASY 1
+
 #define BUFF_SIZE 64
 #define NULL 0
 
@@ -36,6 +38,7 @@ short ship_shoot = 0x0C00 | 'i';
 short wall = 0x1000 | 0;
 
 int LOSE = 0;
+int WIN = 0;
 int dead_zone = 19;
 int x_aliens = 3;
 int y_aliens = 2;
@@ -67,7 +70,6 @@ int pending_frames() {
       else return 0;
   }
 }
-
 void push_frame(short * mat){
   //the buff is not full
   if (IsFull_Flag == 0) { 
@@ -76,7 +78,6 @@ void push_frame(short * mat){
     if (Head == Tail) IsFull_Flag = 1;
   }
 }
-
 short * read_frame(){
   //the buffer is empty
   if ((Head == Tail) && (IsFull_Flag != 1)){
@@ -190,19 +191,6 @@ void thread_push() {
   push_frame(mat);
   if (sem_signal(0) == -1) perror();
 }
-void thread_dump_test() {
-    //short mat;
-    if (sem_wait(0) == -1) perror(); //EVITO RACE CONDITION BAKABAKA
-    short * tmp = read_frame();
-    if (tmp != NULL) {
-        //fps_global = CalcAverageTick(gettime());
-        if (dump_screen(tmp) == -1) perror();
-        ++total_frames;
-        if (dealloc(tmp) == -1) perror();
-    }
-    
-    if (sem_signal(0) == -1) perror();
-}
 void thread_dump(void *addr){
   while(1){
     //short mat;
@@ -229,9 +217,11 @@ void setup(){
   thread_push();
 }
 void aliens_down(){
+  int total_aliens = 0;
   for (int i = 22; i >= 3; --i){
     for (int j = 2; j <= NUM_COLUMNS-3;++j){
       if (board[i][j].alien == 1){
+        ++total_aliens;
         board[i][j].alien = 0;
         if (board[i][j].ship_shoot!=1){
           board[i+1][j].alien = 1;
@@ -240,11 +230,14 @@ void aliens_down(){
       }
     }
   }
+  if (total_aliens == 0) WIN = 1;
 }
 void aliens_right(){
+  int total_aliens = 0;
   for (int i = 3; i < 22; ++i){
     for (int j = NUM_COLUMNS-3; j >= 2; --j){
       if (board[i][j].alien){
+        ++total_aliens;
         if (board[i][j].shield == 1) board[i][j].shield = 0;
         board[i][j].alien = 0;
         //if (board[i][j].ship_shoot!=1) 
@@ -252,11 +245,14 @@ void aliens_right(){
       }
     }
   }
+  if (total_aliens == 0) WIN = 1;
 }
 void aliens_left(){
+  int total_aliens = 0;
   for (int i = 3; i < 22; ++i){
     for (int j = 2; j <= NUM_COLUMNS-3;++j){
       if (board[i][j].alien){
+        ++total_aliens;
         if (board[i][j].shield == 1) board[i][j].shield = 0;
         board[i][j].alien = 0;
         //if (board[i][j].ship_shoot!=1) 
@@ -264,6 +260,16 @@ void aliens_left(){
       }
     }
   }
+  if (total_aliens == 0) WIN = 1;
+}
+int shoot_colision(){
+  if (board[x_ship][y_ship].alien_shoot) return 1;
+  if (board[x_ship-1][y_ship].alien_shoot) return 1;
+  if (board[x_ship][y_ship-1].alien_shoot) return 1;
+  if (board[x_ship][y_ship-2].alien_shoot) return 1;
+  if (board[x_ship][y_ship+1].alien_shoot) return 1;
+  if (board[x_ship][y_ship+2].alien_shoot) return 1;
+  else return 0;
 }
 void ship_right(){
   if (y_ship < NUM_COLUMNS-5){
@@ -272,6 +278,7 @@ void ship_right(){
     board[x_ship][y_ship-2].ship = 0;
     board[x_ship-1][y_ship].ship = 0;
     ++y_ship;
+    if (shoot_colision()) LOSE = 1;
   }
 }
 void ship_left(){
@@ -281,6 +288,7 @@ void ship_left(){
     board[x_ship][y_ship+2].ship = 0;
     board[x_ship-1][y_ship].ship = 0;
     --y_ship;
+    if (shoot_colision()) LOSE = 1;
   }
 }
 void move_aliens(){
@@ -355,16 +363,24 @@ void move_shoots(){
   move_shoots_ship();
 }
 void make_ship_shoot(){
-  if (board[x_ship-2][y_ship].ship_shoot!=1&&board[x_ship-1][y_ship+1].ship_shoot!=1&&board[x_ship-1][y_ship-1].ship_shoot!=1){
-    board[x_ship-1][y_ship].ship_shoot = 1;
+  if (EASY && board[x_ship-2][y_ship].ship_shoot!=1) board[x_ship-2][y_ship].ship_shoot = 1;
+  else {
+    if (board[x_ship-3][y_ship].ship_shoot!=1&&board[x_ship-2][y_ship+1].ship_shoot!=1&&board[x_ship-2][y_ship-1].ship_shoot!=1){
+      board[x_ship-2][y_ship].ship_shoot = 1;
+    }
   }
 }
 void ia_shoot_alien(){
-  int max_aliens_shoots = 1;
+  int max_aliens_shoots = 3;
   int count = 0;
+  int hard = 1;
   int total_aliens = 0;
   short is_alien[80];
-  if(gettime()%3){
+  if (EASY){ 
+    hard = 2;
+    max_aliens_shoots = 1;
+  }
+  if(gettime()%hard == 0){
     for (int m = 0; m < 80; ++m) is_alien[m] = 0;
     for (int i = 23; i >= 2; --i){
       for (int j = 2; j <= NUM_COLUMNS-3; ++j){
@@ -379,8 +395,8 @@ void ia_shoot_alien(){
         board[is_alien[k]][k].alien_shoot = 1;
         ++count;
         ++shoot_pointer;
-        last_shoot = (y_aliens+49)/shoot_pointer;
-        shoot_pointer = shoot_pointer%4;
+        last_shoot = y_aliens+(50-(50/shoot_pointer));
+        shoot_pointer = shoot_pointer%5;
       }
     }
   }
@@ -390,8 +406,22 @@ void ia_move(){
   move_aliens();
   ia_shoot_alien();
 }
+void game_win() {
+  if (sem_wait(0) == -1) perror();
+  mat = alloc();
+  board_to_screen(mat);
+  int off = 0;
+  *(mat + (NUM_COLUMNS*13) + off + 36) = stos('Y', REDFLASHBG + WHITE); ++off;
+  *(mat + (NUM_COLUMNS*13) + off + 36) = stos('O', REDFLASHBG + WHITE); ++off;
+  *(mat + (NUM_COLUMNS*13) + off + 36) = stos('U', REDFLASHBG + WHITE); ++off;
+  *(mat + (NUM_COLUMNS*13) + off + 36) = stos(' ', REDFLASHBG + WHITE); ++off;
+  *(mat + (NUM_COLUMNS*13) + off + 36) = stos('W', REDFLASHBG + WHITE); ++off;
+  *(mat + (NUM_COLUMNS*13) + off + 36) = stos('I', REDFLASHBG + WHITE); ++off;
+  *(mat + (NUM_COLUMNS*13) + off + 36) = stos('N', REDFLASHBG + WHITE);
+  push_frame(mat);
+  if (sem_signal(0) == -1) perror();
+}
 void game_over() {
-    
   if (sem_wait(0) == -1) perror();
   mat = alloc();
   board_to_screen(mat);
@@ -415,11 +445,11 @@ void welcome() {
 int __attribute__ ((__section__(".text.main")))
   main(void)
 {
-  
   setup();
-  
+
   while(1){
-    while(!LOSE){
+
+    while(!LOSE && !WIN){
       if(get_key(&c) == 0){
         if(c == 'a'){
           ship_left();
@@ -440,9 +470,8 @@ int __attribute__ ((__section__(".text.main")))
         t0 = gettime();
       }
     }
-    //GAME OVER
-        //LOSE = 0;
-    game_over();
+    if (LOSE) game_over();
+    else if (WIN) game_win();
     while(1);
   }
 }
