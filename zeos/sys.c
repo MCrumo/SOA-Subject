@@ -372,8 +372,8 @@ int sys_terminatethread()
 int sys_dump_screen(void *address)
 { 
   //address corresponding to an 80x25 matrix; is valid?
-  if (!access_ok(VERIFY_WRITE, address, sizeof(void*))) return -EFAULT;
-  /*unsigned int lid = (unsigned int)address >> 12;
+  //if (!access_ok(VERIFY_WRITE, address, sizeof(void*))) return -69;//-EFAULT;
+  unsigned int lid = (unsigned int)address >> 12;
   // Is a valid range of logPage id? 
   if ((lid < NUM_PAG_KERNEL+NUM_PAG_CODE+NUM_PAG_DATA) || (lid >= TOTAL_PAGES)){
     return -EACCES;
@@ -382,7 +382,7 @@ int sys_dump_screen(void *address)
   else{
     unsigned int fpage = get_frame(get_PT(current()), lid);
     if (fpage == 0) return -EACCES;
-  }*/
+  }
 
   int k = 0;
 

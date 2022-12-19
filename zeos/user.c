@@ -4,8 +4,8 @@
 #define NUM_ROWS 25
 #define NUM_COLUMNS 80
 
-#define SEG 200 //moviment ia
-#define SEG_ZEOS 1000 //calcul fps
+#define SEG 18 //retard moviment ia
+#define SEG_ZEOS 18 //ticks per second zeos
 
 #define BUFF_SIZE 64
 #define NULL 0
@@ -46,23 +46,26 @@ int move_left = 0;
 int move_down = 0;
 int last_shoot = 3;
 int shoot_pointer = 1;
-int fps = 99;
-int pfd = 37;
+int fps = 0;
+int pfd = 0;
 
 int t0 = 0;
 short * mat;
 
-/*=============BUFFER CIRCULAR BAKA BAKA=============*/
+/*============= BUFFER CIRCULAR BAKA BAKA =============*/
 
-short *frame_buff[BUFF_SIZE];
+short * frame_buff[BUFF_SIZE];
 int Head = 0;
 int Tail = 0;
 int IsFull_Flag = 0;
 
 int pending_frames() {
-  if (Head < Tail) return Tail-Head;
+  if (Head < Tail) return (Head + BUFF_SIZE) - Tail;
   else if (Head > Tail) return Head-Tail;
-  else return 0;
+  else {
+      if (IsFull_Flag) return BUFF_SIZE;
+      else return 0;
+  }
 }
 
 void push_frame(short * mat){
@@ -89,46 +92,18 @@ short * read_frame(){
 
 /*===================================================*/
 
-int segons_prveis = 0;
+int ticks_prveis = 0;
 int total_frames = 0;
-int global_fps = 0;
 
-int update_fps() {
-    int aux_fps = global_fps;
-    int aux_segs = gettime() - segons_prveis;
-    if (aux_segs >= SEG_ZEOS) {
-        aux_fps = ((total_frames*SEG_ZEOS) / (aux_segs));
-        global_fps = aux_fps;
-        segons_prveis = gettime();
+void compute_fps() {
+    //int aux_frames = total_frames;
+    int ticks = gettime();
+    if (ticks-ticks_prveis >= SEG_ZEOS) { //ha passat 1seg
+        ticks_prveis = ticks;
+        fps = total_frames;
         total_frames = 0;
     }
-    
-    return aux_fps;
 }
-
-#define MAXSAMPLES 100
-int tickindex=0;
-int ticksum=0;
-int ticklist[MAXSAMPLES];
-double fps_global;
-
-/* need to zero out the ticklist array before starting */
-/* average will ramp up until the buffer is full */
-/* returns average ticks per frame over the MAXSAMPLES last frames */
-
-double CalcAverageTick(int newtick)
-{
-    ticksum-=ticklist[tickindex];  /* subtract value falling off */
-    ticksum+=newtick;              /* add new value */
-    ticklist[tickindex]=newtick;   /* save new value so it can be subtracted later */
-    if(++tickindex==MAXSAMPLES)    /* inc buffer index */
-        tickindex=0;
-
-    /* return average */
-    //return((double)ticksum/MAXSAMPLES);
-    return ((MAXSAMPLES/(double)ticksum)*(SEG_ZEOS));
-}
-
 int is_wall(int i, int j){
   return ((i==1)||(i==NUM_ROWS-1)||((j==0||j==1) && i!=0)||((j==NUM_COLUMNS-1||j==NUM_COLUMNS-2) && i!=0));
 }
@@ -154,7 +129,7 @@ void init_board(cell board[NUM_ROWS][NUM_COLUMNS]){
     }
   }
 }
-void board_to_screen(short* matrix){
+void board_to_screen(short * matrix){
   char cent;
   char unit;
   int a = 0; //offsets
@@ -166,11 +141,11 @@ void board_to_screen(short* matrix){
   *(matrix+5) = stos('y',0x6); *(matrix+6) = stos(':',0x7);
   *(matrix+7) = stos('2',0x6); *(matrix+8) = stos('2',0x6);
   //FPS
-  //fps = update_fps();
+  compute_fps();
   *(matrix+10+a) = stos('f',0x4); *(matrix+11+a) = stos('p',0x4); 
   *(matrix+12+a) = stos('s',0x4); *(matrix+13+a) = stos(':',0x7);
-  itoa(fps_global/10, &cent); *(matrix+14+a) = stos(cent,0x4); //he cambiat fps per fps_global
-  itoa((int)fps_global%10, &unit); *(matrix+15+a) = stos(unit,0x4);
+  itoa(fps/10, &cent); *(matrix+14+a) = stos(cent,0x4);
+  itoa((int)fps%10, &unit); *(matrix+15+a) = stos(unit,0x4);
   
   //PFD
   pfd = pending_frames();
@@ -215,13 +190,12 @@ void thread_push() {
   push_frame(mat);
   if (sem_signal(0) == -1) perror();
 }
-
 void thread_dump_test() {
     //short mat;
     if (sem_wait(0) == -1) perror(); //EVITO RACE CONDITION BAKABAKA
     short * tmp = read_frame();
     if (tmp != NULL) {
-        fps_global = CalcAverageTick(gettime());
+        //fps_global = CalcAverageTick(gettime());
         if (dump_screen(tmp) == -1) perror();
         ++total_frames;
         if (dealloc(tmp) == -1) perror();
@@ -229,17 +203,16 @@ void thread_dump_test() {
     
     if (sem_signal(0) == -1) perror();
 }
-
 void thread_dump(void *addr){
   while(1){
     //short mat;
     if (sem_wait(0) == -1) perror(); //EVITO RACE CONDITION BAKABAKA
-    unsigned int tmp = read_frame();
+    short * tmp = read_frame();
     if (tmp != NULL) {//maybe NULL 
-        fps_global = CalcAverageTick(gettime());
-        if (dump_screen(&tmp) == -1) perror();
+        //fps_global = CalcAverageTick(gettime());
+        if (dump_screen(tmp) == -1) perror(); //NO ES & 
         ++total_frames;
-        if (dealloc(&tmp) == -1) perror();
+        if (dealloc(tmp) == -1) perror();
     }
     
     if (sem_signal(0) == -1) perror();
@@ -248,7 +221,7 @@ void thread_dump(void *addr){
   terminatethread();
 }
 void setup(){
-  for (int i = 0; i < MAXSAMPLES; ++i) ticklist[i] = 0; //Inicialitzacio falcul fps
+  //for (int i = 0; i < MAXSAMPLES; ++i) ticklist[i] = 0; //Inicialitzacio falcul fps
     
   init_board(board);
   sem_init(0, 1); //DECLARO SEMAFORO 0 EXCLUSION MUTUA
@@ -417,26 +390,33 @@ void ia_move(){
   move_aliens();
   ia_shoot_alien();
 }
+void game_over() {
+    
+  if (sem_wait(0) == -1) perror();
+  mat = alloc();
+  board_to_screen(mat);
+  int off = 0;
+  *(mat + (NUM_COLUMNS*13) + off + 36) = stos('G', REDFLASHBG + WHITE); ++off;
+  *(mat + (NUM_COLUMNS*13) + off + 36) = stos('A', REDFLASHBG + WHITE); ++off;
+  *(mat + (NUM_COLUMNS*13) + off + 36) = stos('M', REDFLASHBG + WHITE); ++off;
+  *(mat + (NUM_COLUMNS*13) + off + 36) = stos('E', REDFLASHBG + WHITE); ++off;
+  *(mat + (NUM_COLUMNS*13) + off + 36) = stos(' ', REDFLASHBG + WHITE); ++off;
+  *(mat + (NUM_COLUMNS*13) + off + 36) = stos('O', REDFLASHBG + WHITE); ++off;
+  *(mat + (NUM_COLUMNS*13) + off + 36) = stos('V', REDFLASHBG + WHITE); ++off;
+  *(mat + (NUM_COLUMNS*13) + off + 36) = stos('E', REDFLASHBG + WHITE); ++off;
+  *(mat + (NUM_COLUMNS*13) + off + 36) = stos('R', REDFLASHBG + WHITE);
+  push_frame(mat);
+  if (sem_signal(0) == -1) perror();
+}
+void welcome() {
+    return;
+}
 
 int __attribute__ ((__section__(".text.main")))
   main(void)
 {
   
   setup();
-  thread_dump_test();
-  
-    /*short * matrix; //TESTING COLORS
-    matrix = alloc();
-    short * aux;// = matrix;
-    for (int i = 0; i < NUM_ROWS; ++i) {
-        for (int j = 0; j< NUM_COLUMNS; ++j) {
-            aux = matrix+80*i+j;
-            *aux = stos('.', j);
-        }
-    }
-    dump_screen(matrix);
-
-    while(1);*/
   
   while(1){
     while(!LOSE){
@@ -444,35 +424,25 @@ int __attribute__ ((__section__(".text.main")))
         if(c == 'a'){
           ship_left();
           thread_push();
-          //thread_dump_test();
         }
         else if (c == 'd'){
           ship_right();
           thread_push();
-          //thread_dump_test();
         }
         else if (c == 'w'){
           make_ship_shoot();
           thread_push();
-          //thread_dump_test();
         }
       }
       if (gettime()-t0 > SEG){
         ia_move();
         thread_push();
-        //thread_dump_test();
         t0 = gettime();
       }
     }
-    //PRINT A GAME OVER
-    LOSE = 0;
+    //GAME OVER
+        //LOSE = 0;
+    game_over();
+    while(1);
   }
-  /*
-      if (sem_init(0, 0) == -1) perror();
-      if (sem_destroy(0) == -1) perror();
-      if (sem_signal(0) == -1) perror();
-      if (sem_wait(0) == -1) perror();
-
-      if (createthread(func_thread2, (void*)matrix) == -1) perror();
-  */
 }
