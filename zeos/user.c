@@ -418,7 +418,7 @@ void ia_shoot_alien(){
     }
     for (int k = last_shoot; k < 80 && count < max_aliens_shoots; ++k){
       if (is_alien[k] > 0){
-        board[is_alien[k]+1][k].alien_shoot = 1;
+        board[is_alien[k]][k].alien_shoot = 1;
         ++count;
         ++shoot_pointer;
         last_shoot = y_aliens+(49-(50/shoot_pointer));

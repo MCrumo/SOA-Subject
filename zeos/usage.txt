@@ -1,0 +1,18 @@
+-------------- SHIP --------------
+
+  MOVES:
+   'A' -> Left
+   'D' -> Right
+
+  SHOOT:
+   'W' -> Shoot
+   
+
+----------- DIFFICULTY -----------
+
+You can change on user.c 
+              / 1 -> Easy Mode
+#define EASY { 
+              \ 0 -> Hard Mode
+
+
