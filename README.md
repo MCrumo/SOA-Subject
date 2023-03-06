@@ -1,4 +1,4 @@
-# SOA - Operating System Project
+# SOA - Subject FIB
 This repository contains the code developed for the Advanced Operating Systems subject in the Computer Engineering degree. The project consists of developing a kernel using the `Zeos` code base and the `Bochs` virtual machine. The final goal is to implement a small operating system capable of running the 8-bit game Space Invaders.
 
 ## Project Structure
@@ -15,6 +15,6 @@ This repository contains the code developed for the Advanced Operating Systems s
 ## Track the commits
 
 In order to follow better all changes and evolution of this project, you can check the commit history:
-```
-https://github.com/MCrumo/SOA/commits/main/zeos
-```
+
+>[https://github.com/MCrumo/SOA/commits/main/zeos](https://github.com/MCrumo/SOA/commits/main/zeos)
+
